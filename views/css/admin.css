@@ -1,0 +1,472 @@
+/**
+ * scm_cookieconsent — admin panel (PrestaShop native look)
+ *
+ * @author    SCM Jakub Berechowski (SecCodeSmith) <admin@seccodesmith.pl>
+ * @copyright 2026 SCM Jakub Berechowski
+ * @license   SecCodeSmith Commercial License v1.1 — free for SMB,
+ *            paid license required for Enterprise. See the LICENSE file.
+ */
+
+.scm-admin-wrapper {
+    --scm-accent:  #25b9d7;   /* PrestaShop core teal */
+    --scm-success: #25b9d7;
+    --scm-text:    #363a41;
+    --scm-muted:   #7a838b;
+    --scm-border:  #e5e8ec;
+    --scm-soft:    #fafbfc;
+    color: #363a41;
+}
+
+/* ====== Header (clean, no gradient) ====== */
+.scm-admin-header {
+    margin-bottom: 16px;
+    padding: 16px 20px !important;
+    background: #fff;
+    border: 1px solid var(--scm-border);
+    border-left: 4px solid var(--scm-accent);
+    border-radius: 4px;
+    box-shadow: 0 1px 2px rgba(0,0,0,0.04);
+}
+.scm-admin-header-content {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 14px;
+    flex-wrap: wrap;
+}
+.scm-admin-title {
+    color: var(--scm-text) !important;
+    margin: 0 0 4px;
+    font-size: 18px;
+    font-weight: 600;
+    display: flex;
+    align-items: center;
+    gap: 9px;
+}
+.scm-admin-title i {
+    font-size: 20px;
+    color: var(--scm-accent);
+}
+.scm-admin-subtitle {
+    margin: 0;
+    color: var(--scm-muted);
+    font-size: 12.5px;
+}
+.scm-admin-badges {
+    display: flex;
+    gap: 6px;
+    flex-wrap: wrap;
+}
+
+/* ====== Badges ====== */
+.scm-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    padding: 3px 9px;
+    border-radius: 3px;
+    font-size: 11px;
+    font-weight: 600;
+    line-height: 1.5;
+    border: 1px solid transparent;
+}
+.scm-badge i { font-size: 10px; }
+.scm-badge-success { background: #eaf6ec; color: #2d7338; border-color: #cfe7d3; }
+.scm-badge-warning { background: #fff4d4; color: #8a6005; border-color: #f3e3a8; }
+.scm-badge-info    { background: #e8f4fa; color: #1d6d8a; border-color: #c5e0ed; }
+.scm-badge-default { background: #f0f1f3; color: #5a626a; border-color: #dde0e3; }
+
+/* ====== Tabs — match PrestaShop native nav-tabs ====== */
+.scm-tabs {
+    margin-bottom: 0;
+    border-bottom: 1px solid var(--scm-border);
+    padding-left: 0;
+    background: #fff;
+    border-radius: 4px 4px 0 0;
+    border: 1px solid var(--scm-border);
+    border-bottom: none;
+    padding: 0 8px;
+}
+.scm-tabs > li {
+    margin-bottom: -1px;
+}
+.scm-tabs > li > a {
+    border: 1px solid transparent !important;
+    background: transparent !important;
+    color: var(--scm-muted) !important;
+    padding: 11px 16px !important;
+    border-radius: 0 !important;
+    border-bottom: 2px solid transparent !important;
+    font-weight: 500;
+    font-size: 13px;
+    transition: color 0.12s, border-color 0.12s;
+    margin-right: 0;
+}
+.scm-tabs > li > a:hover,
+.scm-tabs > li > a:focus {
+    color: var(--scm-accent) !important;
+    background: var(--scm-soft) !important;
+    border-bottom-color: transparent !important;
+}
+.scm-tabs > li.active > a,
+.scm-tabs > li.active > a:focus,
+.scm-tabs > li.active > a:hover {
+    color: var(--scm-text) !important;
+    border-bottom-color: var(--scm-accent) !important;
+    background: #fff !important;
+    font-weight: 600;
+}
+.scm-tabs > li > a i { margin-right: 6px; color: inherit; }
+
+.scm-tab-content {
+    background: #fff;
+    border: 1px solid var(--scm-border);
+    border-top: none;
+    border-radius: 0 0 4px 4px;
+    padding: 0;
+}
+
+/* ====== Panels inside tab content ====== */
+.scm-tab-content .panel {
+    margin: 0;
+    border: none;
+    border-radius: 0;
+    box-shadow: none;
+    background: transparent;
+}
+.scm-tab-content .panel + .panel {
+    border-top: 1px solid var(--scm-border);
+}
+.scm-form .panel-heading,
+.scm-tab-content .panel > .panel-heading {
+    background: var(--scm-soft);
+    border-bottom: 1px solid var(--scm-border);
+    font-weight: 600;
+    font-size: 13px;
+    color: var(--scm-text);
+    padding: 11px 18px;
+    text-transform: uppercase;
+    letter-spacing: 0.4px;
+}
+.scm-form .panel-heading i,
+.scm-tab-content .panel > .panel-heading i {
+    color: var(--scm-accent);
+    margin-right: 6px;
+}
+
+/* ====== Fieldsets ====== */
+.scm-fieldset {
+    border: none;
+    padding: 16px 22px;
+    margin: 0;
+    border-bottom: 1px solid var(--scm-border);
+    display: block;
+    clear: both;
+}
+.scm-fieldset:last-of-type { border-bottom: none; }
+
+.scm-fieldset > legend {
+    display: block;
+    width: 100%;
+    float: none;
+    padding: 0 0 8px 0;
+    margin-bottom: 14px;
+    font-size: 12px;
+    font-weight: 700;
+    color: var(--scm-muted);
+    border: none;
+    border-bottom: 1px solid var(--scm-border);
+    text-transform: uppercase;
+    letter-spacing: 0.6px;
+    clear: both;
+}
+
+.scm-required { color: #b94a48; font-weight: 700; }
+
+/* Bootstrap's .form-group uses floated columns inside — need clearfix
+   and a hard break between rows so labels don't wrap up next to floats */
+.scm-form .form-group {
+    margin-bottom: 14px;
+    display: block;
+    clear: both;
+}
+.scm-form .form-group::before,
+.scm-form .form-group::after {
+    content: " ";
+    display: table;
+}
+.scm-form .form-group::after { clear: both; }
+
+.scm-form .form-group > .control-label {
+    padding-top: 7px;
+    line-height: 1.4;
+}
+.scm-form .help-block {
+    color: var(--scm-muted);
+    font-size: 12px;
+    margin-top: 4px;
+    margin-bottom: 0;
+}
+.scm-form .form-control {
+    border: 1px solid #cfd3d8;
+    border-radius: 3px;
+    box-shadow: none;
+    transition: border-color 0.12s, box-shadow 0.12s;
+}
+.scm-form .form-control:focus {
+    border-color: var(--scm-accent);
+    box-shadow: 0 0 0 2px rgba(37,185,215,0.18);
+    outline: none;
+}
+
+/* ====== Footer ====== */
+.scm-tab-content .panel-footer,
+.scm-form .panel-footer {
+    background: var(--scm-soft);
+    border-top: 1px solid var(--scm-border);
+    padding: 12px 22px;
+    border-radius: 0;
+}
+.scm-tab-content .panel-footer::after { content: ""; display: table; clear: both; }
+
+.scm-tab-content .btn-primary {
+    background: var(--scm-accent);
+    border-color: var(--scm-accent);
+}
+.scm-tab-content .btn-primary:hover,
+.scm-tab-content .btn-primary:focus {
+    background: #1ca0bb;
+    border-color: #1ca0bb;
+}
+
+/* ====== Categories table ====== */
+.scm-categories-table {
+    margin-bottom: 0;
+    border: none;
+}
+.scm-categories-table > thead > tr > th {
+    background: var(--scm-soft);
+    border-top: none;
+    border-bottom: 1px solid var(--scm-border);
+    color: var(--scm-muted);
+    text-transform: uppercase;
+    font-size: 11px;
+    letter-spacing: 0.5px;
+    font-weight: 700;
+    padding: 10px 12px;
+    vertical-align: middle;
+}
+.scm-categories-table > tbody > tr > td {
+    border-top: 1px solid var(--scm-border);
+    padding: 12px;
+    vertical-align: middle;
+    font-size: 13px;
+}
+.scm-categories-table > tbody > tr:hover { background: var(--scm-soft); }
+
+.scm-position-badge {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 26px;
+    height: 26px;
+    background: var(--scm-soft);
+    color: var(--scm-text);
+    border: 1px solid var(--scm-border);
+    border-radius: 50%;
+    font-size: 12px;
+    font-weight: 700;
+}
+
+.scm-desc-cell {
+    color: var(--scm-muted);
+    font-size: 12px;
+    max-width: 280px;
+}
+
+.scm-code {
+    background: var(--scm-soft);
+    border: 1px solid var(--scm-border);
+    color: #4a5564;
+    padding: 2px 6px;
+    border-radius: 3px;
+    font-size: 11px;
+    font-family: "SF Mono", Consolas, Menlo, monospace;
+    display: inline-block;
+    max-width: 240px;
+    word-break: break-all;
+    line-height: 1.5;
+}
+.scm-code-gtm {
+    background: #e8f4fa;
+    border-color: #c5e0ed;
+    color: #1d6d8a;
+}
+
+.scm-active-toggle { text-decoration: none; }
+
+.scm-categories-table .btn-xs {
+    padding: 3px 8px;
+    font-size: 12px;
+}
+
+/* ====== Toolbar (action buttons above table) ====== */
+.scm-table-toolbar {
+    padding: 10px 18px;
+    background: var(--scm-soft);
+    border-bottom: 1px solid var(--scm-border);
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 10px;
+    flex-wrap: wrap;
+}
+.scm-toolbar-group {
+    display: flex;
+    gap: 6px;
+    flex-wrap: wrap;
+}
+
+/* ====== Color picker ====== */
+.scm-color-input {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    max-width: 300px;
+}
+.scm-color-picker {
+    width: 50px;
+    height: 38px;
+    padding: 2px;
+    border: 1px solid var(--scm-border);
+    border-radius: 3px;
+    cursor: pointer;
+    background: #fff;
+}
+.scm-color-hex {
+    width: 110px;
+    font-family: "SF Mono", Consolas, monospace;
+    text-transform: uppercase;
+}
+
+.scm-preview-wrapper {
+    padding: 18px 22px;
+    background: var(--scm-soft);
+    border-top: 1px solid var(--scm-border);
+}
+.scm-preview-wrapper h4 {
+    font-size: 11px;
+    text-transform: uppercase;
+    color: var(--scm-muted);
+    letter-spacing: 0.5px;
+    margin: 0 0 12px;
+    font-weight: 700;
+}
+.scm-preview-row {
+    display: flex;
+    align-items: center;
+    gap: 18px;
+    flex-wrap: wrap;
+}
+.scm-preview-btn {
+    padding: 9px 16px;
+    border-radius: 4px;
+    color: #fff;
+    border: 2px solid;
+    font-weight: 600;
+    font-size: 13px;
+    cursor: default;
+}
+.scm-preview-toggle {
+    position: relative;
+    display: inline-block;
+    width: 40px;
+    height: 22px;
+    border-radius: 11px;
+}
+.scm-preview-knob {
+    position: absolute;
+    right: 2px;
+    top: 2px;
+    width: 18px;
+    height: 18px;
+    background: #fff;
+    border-radius: 50%;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.2);
+}
+.scm-preview-label {
+    font-size: 11px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.4px;
+}
+
+/* ====== RODO help cards ====== */
+.scm-rodo-help { padding: 0; }
+.scm-rodo-card {
+    padding: 18px 22px;
+    border-bottom: 1px solid var(--scm-border);
+}
+.scm-rodo-card:last-of-type { border-bottom: none; }
+.scm-rodo-card h4 {
+    margin: 0 0 12px;
+    font-size: 13px;
+    font-weight: 700;
+    color: var(--scm-text);
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    text-transform: uppercase;
+    letter-spacing: 0.4px;
+}
+.scm-rodo-card ul {
+    margin: 0;
+    padding-left: 22px;
+}
+.scm-rodo-card li {
+    margin-bottom: 6px;
+    line-height: 1.55;
+    color: var(--scm-text);
+    font-size: 13px;
+}
+.scm-rodo-card table {
+    margin-top: 6px;
+    margin-bottom: 0;
+    border: 1px solid var(--scm-border);
+    border-radius: 3px;
+}
+.scm-rodo-card table td {
+    padding: 9px 12px;
+    border-top: 1px solid var(--scm-border);
+    font-size: 13px;
+}
+.scm-rodo-card table tr:first-child td { border-top: none; }
+.scm-rodo-card a { color: var(--scm-accent); }
+
+.scm-admin-wrapper .alert {
+    margin: 14px 22px;
+    border-radius: 3px;
+    border-width: 1px;
+    border-style: solid;
+    padding: 12px 14px;
+    font-size: 13px;
+}
+.scm-admin-wrapper .alert-info {
+    background: #e8f4fa;
+    border-color: #c5e0ed;
+    color: #1d6d8a;
+}
+.scm-admin-wrapper .alert-warning {
+    background: #fff8e3;
+    border-color: #f3e3a8;
+    color: #7a5b06;
+}
+
+/* ====== Responsive ====== */
+@media (max-width: 768px) {
+    .scm-admin-header-content { flex-direction: column; align-items: flex-start; }
+    .scm-tabs > li > a { padding: 10px 11px !important; font-size: 12px; }
+    .scm-tabs > li > a i { display: none; }
+    .scm-fieldset { padding: 14px 16px; }
+    .scm-categories-table { font-size: 12px; }
+}

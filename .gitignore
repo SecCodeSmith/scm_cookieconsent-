@@ -1,0 +1,21 @@
+# Dependencies
+/vendor/
+node_modules/
+
+# Build artefacts (keep min.js in repo — it is the distributed file)
+*.map
+
+# OS / editor
+.DS_Store
+Thumbs.db
+.idea/
+.vscode/
+*.swp
+*~
+
+# PrestaShop local config that may end up in module dir
+config.inc.php
+config_*.inc.php
+
+# Logs
+*.log

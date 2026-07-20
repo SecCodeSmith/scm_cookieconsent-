@@ -1,0 +1,48 @@
+name: Build
+
+on:
+  push:
+    branches: ['**']
+  pull_request:
+  workflow_dispatch:
+
+jobs:
+  php-lint:
+    name: PHP lint (PHP ${{ matrix.php }})
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        # Module targets PHP 7.1+ (up to 8.1-8.4 on PrestaShop 9) — lint both ends.
+        php: ['7.4', '8.3']
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: shivammathur/setup-php@v2
+        with:
+          php-version: ${{ matrix.php }}
+          tools: none
+          coverage: none
+
+      - name: Lint all PHP files
+        shell: bash
+        run: find . -name '*.php' -print0 | xargs -0 -n1 php -l
+
+  build:
+    name: Package module
+    needs: php-lint
+    # build.ps1 stages files with robocopy, which is Windows-only.
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Run build.ps1
+        shell: pwsh
+        run: ./build.ps1
+
+      - name: Upload build artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: scm_cookieconsent-build
+          path: dist/*.zip
+          if-no-files-found: error

@@ -28,7 +28,7 @@ class Scm_Cookieconsent extends Module
     {
         $this->name          = 'scm_cookieconsent';
         $this->tab           = 'front_office_features';
-        $this->version       = '1.6.1';
+        $this->version       = '1.6.6';
         $this->author        = 'SecCodeSmith';
         $this->need_instance = 0;
         $this->bootstrap     = true;
@@ -1020,6 +1020,16 @@ class Scm_Cookieconsent extends Module
     {
         // Modern asset API (PS 1.7+ themes, required for PS 9) with legacy fallback.
         // Minified JS build — readable source: views/js/scm_cookieconsent.js
+        //
+        // Do NOT append a `?v=` cache-buster to these paths: PrestaShop's
+        // registerStylesheet()/registerJavascript() (and addCSS()/addJS())
+        // run file_exists() against the literal path string and do not
+        // strip query strings first, so a query string here makes the
+        // check fail and the asset silently never registers at all (no
+        // error — the CSS/JS just vanish from <head>, confirmed live on
+        // hialumed.pl in 1.6.3). Cache staleness after an update must be
+        // handled operationally (clear Preferences > Performance cache),
+        // not via the asset URL.
         $controller = $this->context->controller;
         if (method_exists($controller, 'registerStylesheet')) {
             $controller->registerStylesheet(

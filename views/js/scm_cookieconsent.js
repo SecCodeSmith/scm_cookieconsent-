@@ -194,7 +194,10 @@
         banner.removeAttribute('hidden');
         banner.classList.add('scm-banner-visible');
 
-        if (overlay && config.position === 'center') {
+        // The banner is marked role="dialog" aria-modal="true" in every
+        // position (bottom bar, center, bottom-left) — the dimmed backdrop
+        // should back that up in every position too, not just "center".
+        if (overlay) {
             overlay.hidden = false;
             overlay.removeAttribute('hidden');
             overlay.setAttribute('aria-hidden', 'false');

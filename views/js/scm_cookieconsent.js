@@ -361,6 +361,24 @@
 
     /* ===== Bootstrap ===== */
 
+    /**
+     * Themes place the displayFooter/displayFooterAfter/displayBeforeBodyClosingTag
+     * hook zone wherever their own markup nests it — sliders, off-canvas nav
+     * panels, sticky footers, etc. often set a CSS transform/filter/perspective
+     * on one of those ancestors, which per spec makes THAT box (not the
+     * viewport) the containing block for any `position: fixed` descendant.
+     * The banner/overlay/widget are fixed-positioned and centered via
+     * top/left 50% + transform, so under such a theme they'd get trapped
+     * inside that ancestor's small box instead of centering on the real
+     * viewport. Re-parenting them directly onto <body> sidesteps whatever
+     * DOM structure the theme wrapped the hook output in.
+     */
+    function detachFromThemeMarkup(el) {
+        if (el && el.parentNode !== document.body) {
+            document.body.appendChild(el);
+        }
+    }
+
     document.addEventListener('DOMContentLoaded', function () {
         resolveConfig();
 
@@ -369,6 +387,10 @@
         widget  = document.getElementById('scm-reopen-widget');
 
         if (!banner) { return; }
+
+        detachFromThemeMarkup(overlay);
+        detachFromThemeMarkup(banner);
+        detachFromThemeMarkup(widget);
 
         var stored = readConsentStore();
 

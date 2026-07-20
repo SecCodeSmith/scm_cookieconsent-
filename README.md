@@ -49,9 +49,19 @@ Default texts and default cookie categories ship in **Polish, English, German an
 | --- | --- |
 | PrestaShop | 1.7.0+, 8.x, 9.x |
 | PHP | 7.1+ (8.1 – 8.4 on PrestaShop 9) |
-| Theme | any theme exposing the standard `displayHeader` and `displayBeforeBodyClosingTag` hooks (Classic, Hummingbird, most commercial themes) |
+| Theme | **any** theme — see "Theme independence" below |
 
 Front-office assets are loaded through the modern `registerStylesheet` / `registerJavascript` API with an automatic fallback to legacy `addCSS` / `addJS` on older installations.
+
+## Theme independence
+
+The banner, the cookie categories and Consent Mode v2 all render from the module itself — no theme template override, no theme-specific CSS classes, no jQuery/Bootstrap dependency on the front end (ES5 vanilla JS, `scm-*` prefixed CSS in its own stylesheet).
+
+The only thing a theme must do is call the standard `displayHeader` hook, which essentially every PrestaShop theme does (it's how `<head>` assets get injected in the first place). Everything else the module needs to *display* — the banner markup and the GA4 ecommerce payload — used to depend solely on the `displayBeforeBodyClosingTag` hook, which some minimal/custom themes never call, silently leaving the shop with no consent banner at all. As of 1.6.0 that same rendering is registered on **three** hooks — `displayBeforeBodyClosingTag`, `displayFooter`, `displayFooterAfter` — and de-duplicated internally so it prints exactly once no matter how many of the three the active theme actually fires. In practice this covers Classic, Hummingbird and virtually every commercial/custom theme without any per-theme configuration.
+
+The one hook the module cannot route around is `displayOrderConfirmation` (used only for the GA4 `purchase` event) — if a theme's order confirmation page omits it, purchase tracking (not the banner itself) won't fire for that theme.
+
+**1.6.1 fixed a second, more subtle theme dependency:** the banner is centered with `position: fixed; top/left: 50%; transform: translate(-50%,-50%)`, which is normally relative to the viewport — *unless* an ancestor element has its own `transform`/`filter`/`perspective` set, in which case that ancestor becomes the containing block instead (a CSS spec quirk, not a bug in this module). Since the banner markup is injected wherever the theme's hook zone happens to sit in the DOM, a theme with a transformed ancestor there (image sliders and off-canvas mobile-menu panels commonly use one) would trap the "fixed" banner inside that small box instead of centering it on the real viewport — exactly the kind of squashed-into-a-corner rendering that showed up on a default/Classic-theme demo store while a customized theme rendered it fine. `scm_cookieconsent.js` now re-parents the banner, overlay and reopen widget onto `<body>` directly at `DOMContentLoaded`, before anything else runs — regardless of which of the three hooks placed them or how deeply the theme nested that hook zone, their containing block is always the true viewport.
 
 ## Installation
 
@@ -165,7 +175,12 @@ npx terser views/js/src/gcm_bootstrap.src.js -c -m   # paste the result into {li
 | Hook | Purpose |
 | --- | --- |
 | `displayHeader` | CSS + JS loading, Consent Mode v2 bootstrap |
-| `displayBeforeBodyClosingTag` | banner rendering + inline configuration |
+| `displayBeforeBodyClosingTag` | banner rendering + inline configuration (1st candidate — see "Theme independence") |
+| `displayFooter` | banner rendering fallback for themes that don't call the hook above |
+| `displayFooterAfter` | banner rendering fallback for themes that don't call either hook above |
+| `displayOrderConfirmation` | GA4 `purchase` event with real order data |
+
+The three banner-rendering hooks all call the same internal `renderBannerAndEcommerce()` method, which renders the banner exactly once per page even if a theme fires more than one of them.
 
 ## Disclaimer
 

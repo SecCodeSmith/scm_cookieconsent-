@@ -4,6 +4,7 @@ node_modules/
 
 # Build artefacts (keep min.js in repo — it is the distributed file)
 *.map
+/dist/
 
 # OS / editor
 .DS_Store

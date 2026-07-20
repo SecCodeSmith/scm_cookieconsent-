@@ -18,11 +18,17 @@ class Scm_Cookieconsent extends Module
     const TABLE_LANG     = 'scm_cookie_categories_lang';
     const CONFIG_PREFIX  = 'SCM_COOKIE_';
 
+    /**
+     * Guards renderBannerAndEcommerce() so the banner is emitted exactly once
+     * per request even though it is registered on three different hooks.
+     */
+    private $bannerRendered = false;
+
     public function __construct()
     {
         $this->name          = 'scm_cookieconsent';
         $this->tab           = 'front_office_features';
-        $this->version       = '1.4.0';
+        $this->version       = '1.6.1';
         $this->author        = 'SecCodeSmith';
         $this->need_instance = 0;
         $this->bootstrap     = true;
@@ -123,7 +129,14 @@ class Scm_Cookieconsent extends Module
     {
         $ok = parent::install()
             && $this->registerHook('displayHeader')
+            // Banner rendering is registered on THREE candidate "end of page"
+            // hooks, not just one — not every theme calls the same one (see
+            // renderBannerAndEcommerce() for why). All three are harmless to
+            // have registered even on themes that only call one of them.
             && $this->registerHook('displayBeforeBodyClosingTag')
+            && $this->registerHook('displayFooter')
+            && $this->registerHook('displayFooterAfter')
+            && $this->registerHook('displayOrderConfirmation')
             && $this->createTable()
             && $this->seedDefaults()
             && $this->installConfig();
@@ -362,6 +375,58 @@ class Scm_Cookieconsent extends Module
         }
 
         return $added;
+    }
+
+    /**
+     * Guarantee a consent category controls the advertising signals. Without one,
+     * ad_storage / ad_user_data / ad_personalization can never be granted, so
+     * Google Ads conversion tracking + remarketing stay permanently denied even
+     * when the visitor accepts everything. Inserts the default Marketing category
+     * only when no existing category already maps an ad_* signal — custom setups
+     * are left untouched. Returns true when a category was added.
+     */
+    public function ensureAdsConsentCategory()
+    {
+        $hasAds = (int) Db::getInstance()->getValue(
+            'SELECT COUNT(*) FROM `' . _DB_PREFIX_ . self::TABLE . "`
+             WHERE gtm_event LIKE '%ad_storage%'
+                OR gtm_event LIKE '%ad_user_data%'
+                OR gtm_event LIKE '%ad_personalization%'"
+        );
+        if ($hasAds > 0) {
+            return false;
+        }
+
+        $marketing = null;
+        foreach (self::getDefaultCategoryData() as $data) {
+            if (strpos((string) $data['gtm_event'], 'ad_storage') !== false) {
+                $marketing = $data;
+                break;
+            }
+        }
+        if (!$marketing) {
+            return false;
+        }
+
+        $now        = date('Y-m-d H:i:s');
+        $languages  = Language::getLanguages(false);
+        $defaultIso = Language::getIsoById((int) Configuration::get('PS_LANG_DEFAULT')) ?: 'en';
+        $base       = self::localizeCategory($marketing, $defaultIso);
+
+        Db::getInstance()->insert(self::TABLE, [
+            'name'         => pSQL($base['name']),
+            'description'  => pSQL($base['description']),
+            'cookie_names' => pSQL($marketing['cookie_names']),
+            'is_required'  => (int) $marketing['is_required'],
+            'gtm_event'    => pSQL($marketing['gtm_event']),
+            'position'     => (int) $marketing['position'],
+            'active'       => 1,
+            'date_add'     => $now,
+            'date_upd'     => $now,
+        ]);
+        $this->insertCategoryLangRows((int) Db::getInstance()->Insert_ID(), $languages, $marketing);
+
+        return true;
     }
 
     private function installConfig()
@@ -967,9 +1032,15 @@ class Scm_Cookieconsent extends Module
                 'modules/' . $this->name . '/views/js/scm_cookieconsent.min.js',
                 ['position' => 'head', 'priority' => 150]
             );
+            $controller->registerJavascript(
+                'module-scm_cookieconsent-ecommerce',
+                'modules/' . $this->name . '/views/js/scm_ecommerce.js',
+                ['position' => 'head', 'priority' => 160]
+            );
         } else {
             $controller->addCSS($this->_path . 'views/css/scm_cookieconsent.css');
             $controller->addJS($this->_path . 'views/js/scm_cookieconsent.min.js');
+            $controller->addJS($this->_path . 'views/js/scm_ecommerce.js');
         }
 
         // CRITICAL: emit GCM v2 bootstrap inline in <head>, BEFORE GTM/gtag.js can load.
@@ -1008,8 +1079,27 @@ class Scm_Cookieconsent extends Module
         return $this->display(__FILE__, 'views/templates/hook/gcm_bootstrap.tpl');
     }
 
-    public function hookDisplayBeforeBodyClosingTag($params)
+    /**
+     * Banner rendering is deliberately NOT tied to a single "end of page" hook.
+     * displayHeader (used for CSS/JS + the Consent Mode bootstrap) is the only
+     * hook essentially every PrestaShop theme calls — but themes vary widely on
+     * which "before the page ends" hook they fire, and some (custom/minimal
+     * themes in particular) skip displayBeforeBodyClosingTag entirely, which
+     * used to mean the banner — and therefore the whole consent mechanism —
+     * silently never appeared. To be theme-independent, this same rendering is
+     * now invoked from THREE candidate hooks (hookDisplayBeforeBodyClosingTag,
+     * hookDisplayFooter, hookDisplayFooterAfter); whichever one the active
+     * theme actually calls first wins. $bannerRendered stops it from being
+     * printed twice (and creating duplicate DOM ids) on themes that call more
+     * than one of them.
+     */
+    private function renderBannerAndEcommerce()
     {
+        if ($this->bannerRendered) {
+            return '';
+        }
+        $this->bannerRendered = true;
+
         $categories = $this->getCategoriesLocalized((int) $this->context->language->id, true);
 
         $jsCategories = $this->buildJsCategories($categories);
@@ -1044,6 +1134,121 @@ class Scm_Cookieconsent extends Module
             'scm_js_categories' => json_encode($jsCategories),
         ]);
 
-        return $this->display(__FILE__, 'views/templates/hook/cookie_banner.tpl');
+        $banner = $this->display(__FILE__, 'views/templates/hook/cookie_banner.tpl');
+
+        // Per-page GA4 ecommerce payload (currency + server-built view_item).
+        $this->context->smarty->assign('scm_ec', json_encode($this->buildEcommercePageData()));
+
+        return $banner . $this->display(__FILE__, 'views/templates/hook/ecommerce_data.tpl');
+    }
+
+    public function hookDisplayBeforeBodyClosingTag($params)
+    {
+        return $this->renderBannerAndEcommerce();
+    }
+
+    /** Fallback entry point — see renderBannerAndEcommerce(). */
+    public function hookDisplayFooter($params)
+    {
+        return $this->renderBannerAndEcommerce();
+    }
+
+    /** Fallback entry point — see renderBannerAndEcommerce(). */
+    public function hookDisplayFooterAfter($params)
+    {
+        return $this->renderBannerAndEcommerce();
+    }
+
+    /* ============================================================== */
+    /*  GA4 ecommerce dataLayer (universal — replaces TagConcierge)    */
+    /* ============================================================== */
+
+    /**
+     * Build the window.SCM_EC payload for the current page: shop currency plus,
+     * on a product page, a fully-populated view_item event (the client-side
+     * `prestashop` object does not expose product price/brand). Cart, checkout,
+     * add/remove events are derived client-side in scm_ecommerce.js.
+     */
+    private function buildEcommercePageData()
+    {
+        $iso = '';
+        if (isset($this->context->currency) && Validate::isLoadedObject($this->context->currency)) {
+            $iso = $this->context->currency->iso_code;
+        }
+
+        $data = ['currency' => $iso, 'pageEvent' => null];
+
+        $controller = $this->context->controller;
+        $pageName   = isset($controller->php_self) ? $controller->php_self : '';
+
+        if ($pageName === 'product') {
+            $product = $this->context->smarty->getTemplateVars('product');
+            if (!empty($product)) {
+                $price = isset($product['price_amount']) ? (float) $product['price_amount'] : 0.0;
+                $item  = [
+                    'item_id'   => (string) (isset($product['id_product']) ? $product['id_product'] : ''),
+                    'item_name' => (string) (isset($product['name']) ? $product['name'] : ''),
+                    'price'     => $price,
+                    'quantity'  => 1,
+                ];
+                if (!empty($product['manufacturer_name'])) { $item['item_brand'] = (string) $product['manufacturer_name']; }
+                if (!empty($product['category_name']))     { $item['item_category'] = (string) $product['category_name']; }
+                elseif (!empty($product['category']))       { $item['item_category'] = (string) $product['category']; }
+                if (!empty($product['reference']))          { $item['item_variant'] = (string) $product['reference']; }
+
+                $data['pageEvent'] = [
+                    'name'      => 'view_item',
+                    'ecommerce' => ['currency' => $iso, 'value' => $price, 'items' => [$item]],
+                ];
+            }
+        }
+
+        return $data;
+    }
+
+    /**
+     * GA4 purchase — emitted with real order data (only reliable source for
+     * transaction_id / value / tax / shipping / items).
+     */
+    public function hookDisplayOrderConfirmation($params)
+    {
+        $order = null;
+        if (isset($params['order']) && Validate::isLoadedObject($params['order'])) {
+            $order = $params['order'];
+        } elseif (isset($params['objOrder']) && Validate::isLoadedObject($params['objOrder'])) {
+            $order = $params['objOrder'];
+        }
+        if (!$order) {
+            return '';
+        }
+
+        $currency = new Currency((int) $order->id_currency);
+
+        $items = [];
+        foreach ((array) $order->getProducts() as $p) {
+            $item = [
+                'item_id'   => (string) (isset($p['product_id']) ? $p['product_id'] : (isset($p['id_product']) ? $p['id_product'] : '')),
+                'item_name' => (string) (isset($p['product_name']) ? $p['product_name'] : ''),
+                'quantity'  => (int) (isset($p['product_quantity']) ? $p['product_quantity'] : 1),
+            ];
+            if (isset($p['unit_price_tax_incl'])) { $item['price'] = (float) $p['unit_price_tax_incl']; }
+            elseif (isset($p['product_price_wt'])) { $item['price'] = (float) $p['product_price_wt']; }
+            elseif (isset($p['product_price'])) { $item['price'] = (float) $p['product_price']; }
+            $items[] = $item;
+        }
+
+        $totalPaid = (float) $order->total_paid_tax_incl;
+        $purchase  = [
+            'transaction_id' => (string) $order->reference,
+            'value'          => $totalPaid,
+            'tax'            => round($totalPaid - (float) $order->total_paid_tax_excl, 2),
+            'shipping'       => (float) $order->total_shipping_tax_incl,
+            'currency'       => $currency->iso_code,
+            'items'          => $items,
+        ];
+
+        $this->context->smarty->assign('scm_purchase', json_encode($purchase));
+
+        return $this->display(__FILE__, 'views/templates/hook/ecommerce_purchase.tpl');
     }
 }

@@ -16,7 +16,7 @@ jobs:
         # Module targets PHP 7.1+ (up to 8.1-8.4 on PrestaShop 9) — lint both ends.
         php: ['7.4', '8.3']
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
 
       - uses: shivammathur/setup-php@v2
         with:
@@ -34,14 +34,14 @@ jobs:
     # build.ps1 stages files with robocopy, which is Windows-only.
     runs-on: windows-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
 
       - name: Run build.ps1
         shell: pwsh
         run: ./build.ps1
 
       - name: Upload build artifact
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: scm_cookieconsent-build
           path: dist/*.zip

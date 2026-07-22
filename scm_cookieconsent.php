@@ -28,7 +28,7 @@ class Scm_Cookieconsent extends Module
     {
         $this->name          = 'scm_cookieconsent';
         $this->tab           = 'front_office_features';
-        $this->version       = '1.6.6';
+        $this->version       = '1.6.7';
         $this->author        = 'SecCodeSmith';
         $this->need_instance = 0;
         $this->bootstrap     = true;

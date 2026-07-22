@@ -65,7 +65,7 @@ body.scm-modal-open { overflow: hidden; }
     bottom: 20px;
     left: 50%;
     transform: translateX(-50%);
-    width: 580px;
+    width: 460px;
     max-width: calc(100vw - 32px);
     border-radius: var(--scm-radius);
     border-top: 3px solid var(--scm-primary);

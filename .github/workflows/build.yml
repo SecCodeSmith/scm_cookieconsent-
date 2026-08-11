@@ -40,9 +40,24 @@ jobs:
         shell: pwsh
         run: ./build.ps1
 
+      - name: Expand built zip for artifact upload
+        # actions/upload-artifact wraps whatever it's given in its own zip for
+        # browser download. Uploading the already-built .zip as-is would mean
+        # downloading it from the Actions UI yields a zip-of-a-zip, and
+        # installing that outer zip directly in PrestaShop fails with "this
+        # file does not appear to be a valid module zip" since the installer
+        # sees a single .zip entry instead of the scm_cookieconsent/ folder.
+        # Expanding here so the artifact's root is dist/artifact/scm_cookieconsent
+        # means the downloaded artifact zip IS the correctly-rooted, directly
+        # installable module zip.
+        shell: pwsh
+        run: |
+          $zip = Get-ChildItem dist/*.zip | Select-Object -First 1
+          Expand-Archive -Path $zip.FullName -DestinationPath dist/artifact -Force
+
       - name: Upload build artifact
         uses: actions/upload-artifact@v7
         with:
           name: scm_cookieconsent-build
-          path: dist/*.zip
+          path: dist/artifact
           if-no-files-found: error

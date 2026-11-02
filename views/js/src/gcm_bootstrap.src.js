@@ -44,7 +44,11 @@
     var initial = buildPayload(stored);
 
     // Expose for the banner JS to reuse
-    window.SCM_GCM = { config: GCM, categories: CATS, tags: TAGS, stored: stored };
+    window.SCM_GCM = {
+        config: GCM, categories: CATS, tags: TAGS, stored: stored,
+        mode: { ecommerce: 'none', ads: 'none' },
+        ready: false
+    };
 
     // === 4. Consent Mode v2 default — MUST precede any Google tag ===
     if (GCM.enabled) {
@@ -125,11 +129,72 @@
     // skip ours (consent default/update governs its tags anyway). Server-side
     // "installed module" detection proved unreliable — an installed module is
     // not necessarily an emitting one.
+    //
+    // The same pass resolves the ecommerce / Ads routing mode ONCE, then
+    // flushes any track()/purchase() calls queued before it ran (scm_ecommerce.js
+    // and the inline purchase snippet may execute earlier than DOMContentLoaded).
+    var pending = [];
+
+    function dispatchTrack(name, params) {
+        if (window.SCM_GCM.mode.ecommerce === 'gtag') {
+            gtag('event', name, params);
+        } else {
+            // GTM (or no Google tag): the dataLayer object pair GTM triggers read.
+            window.dataLayer.push({ ecommerce: null });
+            window.dataLayer.push({ event: name, ecommerce: params });
+        }
+    }
+
+    function dispatchPurchase(p) {
+        dispatchTrack('purchase', p);
+        if (window.SCM_GCM.mode.ads === 'gtag' && TAGS.adsId && TAGS.adsConversionLabel) {
+            gtag('event', 'conversion', {
+                send_to:        TAGS.adsId + '/' + TAGS.adsConversionLabel,
+                value:          p.value,
+                currency:       p.currency,
+                transaction_id: p.transaction_id
+            });
+        }
+    }
+
+    window.SCM_GCM.track = function (name, params) {
+        if (!window.SCM_GCM.ready) { pending.push(['track', name, params]); return; }
+        dispatchTrack(name, params);
+    };
+
+    window.SCM_GCM.purchase = function (payload) {
+        if (!window.SCM_GCM.ready) { pending.push(['purchase', payload]); return; }
+        dispatchPurchase(payload);
+    };
+
+    function finish(mode) {
+        window.SCM_GCM.mode = mode;
+        window.SCM_GCM.ready = true;
+        var queue = pending;
+        pending = [];
+        queue.forEach(function (q) {
+            if (q[0] === 'purchase') { dispatchPurchase(q[1]); }
+            else { dispatchTrack(q[1], q[2]); }
+        });
+    }
+
+    function loadGtagJs(id) {
+        var gs = document.createElement('script');
+        gs.async = true;
+        gs.src = 'https://www.googletagmanager.com/gtag/js?id=' + encodeURIComponent(id);
+        var first = document.getElementsByTagName('script')[0];
+        first.parentNode.insertBefore(gs, first);
+        gtag('js', new Date());
+    }
+
     function injectGoogleTags() {
-        if (!GCM.enabled) { return; }
+        var mode = { ecommerce: 'none', ads: 'none' };
+        if (!GCM.enabled) { finish(mode); return; }
 
         var hasGtm = !!window.google_tag_manager
             || !!document.querySelector('script[src*="googletagmanager.com/gtm.js?"]');
+        var hasGtagScript = !!document.querySelector('script[src*="googletagmanager.com/gtag/js?"]');
+        var ownDirect = false;
 
         // GTM — the preferred path. No <noscript> iframe on purpose: without
         // JS no consent can be given, so it would fire without a legal basis.
@@ -142,24 +207,33 @@
                 j.src = 'https://www.googletagmanager.com/gtm.js?id=' + encodeURIComponent(i);
                 f.parentNode.insertBefore(j, f);
             })(window, document, 'script', 'dataLayer', TAGS.gtmId);
-            return;
+            hasGtm = true;
         }
 
-        // gtag.js direct — FALLBACK ONLY when no GTM container exists at all.
-        // With GTM present, GA4/Ads tags belong in the container — loading
-        // gtag.js next to it double-counts.
-        if ((TAGS.ga4Id || TAGS.adsId) && !TAGS.gtmId && !hasGtm
-            && !document.querySelector('script[src*="googletagmanager.com/gtag/js?"]')) {
-            var gs = document.createElement('script');
-            gs.async = true;
-            gs.src = 'https://www.googletagmanager.com/gtag/js?id=' + encodeURIComponent(TAGS.ga4Id || TAGS.adsId);
-            var first = document.getElementsByTagName('script')[0];
-            first.parentNode.insertBefore(gs, first);
-
-            gtag('js', new Date());
+        if (hasGtm) {
+            mode.ecommerce = 'gtm';
+            mode.ads = 'container';
+        } else if ((TAGS.ga4Id || TAGS.adsId) && !TAGS.gtmId && !hasGtagScript) {
+            // gtag.js direct — FALLBACK ONLY when no GTM container exists at all.
+            // With GTM present, GA4/Ads tags belong in the container — loading
+            // gtag.js next to it double-counts.
+            loadGtagJs(TAGS.ga4Id || TAGS.adsId);
             if (TAGS.ga4Id) { gtag('config', TAGS.ga4Id); }
             if (TAGS.adsId) { gtag('config', TAGS.adsId); }
+            ownDirect = true;
+            mode.ecommerce = 'gtag';
+            mode.ads = TAGS.adsId ? 'gtag' : 'none';
         }
+
+        // Ads-only direct tag — opt-in, works next to a container or an external
+        // gtag.js. Configures the AW id only (never GA4: no double-counting).
+        if (!ownDirect && TAGS.adsForceDirect && TAGS.adsId) {
+            loadGtagJs(TAGS.adsId);
+            gtag('config', TAGS.adsId);
+            mode.ads = 'gtag';
+        }
+
+        finish(mode);
     }
 
     if (document.readyState === 'loading') {

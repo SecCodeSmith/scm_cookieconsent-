@@ -15,8 +15,12 @@
  * is governed by Google Consent Mode v2 (the head bootstrap) inside the tag —
  * a dataLayer push is not itself a network beacon.
  *
- * Every ecommerce event is preceded by dataLayer.push({ ecommerce: null }) so
- * GA4 never merges items from a previous event (Google's documented rule).
+ * Routing: events go through window.SCM_GCM.track() (head bootstrap), which
+ * decides between the GTM dataLayer object pair and a direct gtag('event').
+ * If the bootstrap is missing, the object pair is pushed directly.
+ *
+ * Every dataLayer ecommerce event is preceded by dataLayer.push({ ecommerce: null })
+ * so GA4 never merges items from a previous event (Google's documented rule).
  *
  * ES5 / no dependencies / IIFE. Uses the standard PrestaShop 1.7+ `prestashop`
  * JS object + event bus, so it is theme-agnostic.
@@ -31,8 +35,14 @@
 
     function dl() { window.dataLayer = window.dataLayer || []; return window.dataLayer; }
 
-    // Clear the previous ecommerce object FIRST, then push — GA4 best practice.
+    // Routing (GTM dataLayer object pair vs. direct gtag event) is decided by
+    // the head bootstrap's SCM_GCM.track(). If it is absent, fall back to the
+    // object pair: clear the previous ecommerce object FIRST, then push.
     function pushEvent(name, ecommerce) {
+        if (window.SCM_GCM && typeof window.SCM_GCM.track === 'function') {
+            window.SCM_GCM.track(name, ecommerce);
+            return;
+        }
         var d = dl();
         d.push({ ecommerce: null });
         d.push({ event: name, ecommerce: ecommerce });

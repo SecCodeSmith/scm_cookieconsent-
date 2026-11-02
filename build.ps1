@@ -116,9 +116,9 @@ $staging     = Join-Path $stagingRoot $ModuleName
 New-Item -ItemType Directory -Path $staging -Force | Out-Null
 
 # robocopy exit codes 0-7 are all "success" (8+ means real errors)
-$excludeDirs = @('.git', 'dist', 'docs', '.vscode', '.idea', 'node_modules')
+$excludeDirs = @('.git', 'dist', 'docs', '.vscode', '.idea', 'node_modules', 'graphify-out', 'openspec', '.claude')
 $excludeFiles = @(
-    'build.ps1', '.gitignore', '*.map', 'Thumbs.db', '.DS_Store', '*.swp', '*~',
+    'build.ps1', '.gitignore', 'CLAUDE.md', '*.map', 'Thumbs.db', '.DS_Store', '*.swp', '*~',
     'config.inc.php', 'config_*.inc.php'
 )
 robocopy $ModuleRoot $staging /E /XD $excludeDirs /XF $excludeFiles /NFL /NDL /NJH /NJS | Out-Null

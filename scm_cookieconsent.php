@@ -28,7 +28,7 @@ class Scm_Cookieconsent extends Module
     {
         $this->name          = 'scm_cookieconsent';
         $this->tab           = 'front_office_features';
-        $this->version       = '1.6.7';
+        $this->version       = '1.7.0';
         $this->author        = 'SCM Jakub Berechowski';
         $this->need_instance = 0;
         $this->bootstrap     = true;
@@ -454,6 +454,8 @@ class Scm_Cookieconsent extends Module
             'GTM_ID'        => '',
             'GA4_ID'        => '',
             'ADS_ID'        => '',
+            'ADS_CONVERSION_LABEL' => '',
+            'ADS_FORCE_DIRECT'     => 0,
             'META_PIXEL_ID' => '',
         ];
 
@@ -482,7 +484,7 @@ class Scm_Cookieconsent extends Module
             'COMPANY_NAME', 'COMPANY_ADDRESS', 'COMPANY_EMAIL', 'PRIVACY_URL',
             'EXPIRY_DAYS', 'POSITION', 'COLOR_PRIMARY', 'COLOR_ACCENT', 'SHOW_REOPEN',
             'GCM_ENABLED', 'GCM_WAIT_MS', 'GCM_URL_PASSTHROUGH', 'GCM_ADS_REDACTION', 'GCM_REGION', 'GCM_SECURITY_GRANTED',
-            'GTM_ID', 'GA4_ID', 'ADS_ID', 'META_PIXEL_ID',
+            'GTM_ID', 'GA4_ID', 'ADS_ID', 'META_PIXEL_ID', 'ADS_CONVERSION_LABEL', 'ADS_FORCE_DIRECT',
         ];
 
         foreach (self::getTextKeys() as $textKey) {
@@ -681,6 +683,9 @@ class Scm_Cookieconsent extends Module
         $ga4  = strtoupper(trim(Tools::getValue(self::CONFIG_PREFIX . 'GA4_ID')));
         $ads  = strtoupper(trim(Tools::getValue(self::CONFIG_PREFIX . 'ADS_ID')));
         $meta = trim(Tools::getValue(self::CONFIG_PREFIX . 'META_PIXEL_ID'));
+        // Conversion labels are case-sensitive — never uppercase them.
+        $label = trim(Tools::getValue(self::CONFIG_PREFIX . 'ADS_CONVERSION_LABEL'));
+        $force = (int) Tools::getValue(self::CONFIG_PREFIX . 'ADS_FORCE_DIRECT') ? 1 : 0;
 
         $errors = [];
 
@@ -696,6 +701,12 @@ class Scm_Cookieconsent extends Module
         if ($meta !== '' && !preg_match('/^[0-9]{5,20}$/', $meta)) {
             $errors[] = $this->l('Identyfikator Meta Pixel musi składać się wyłącznie z cyfr (5–20 znaków).');
         }
+        if ($label !== '' && !preg_match('/^[A-Za-z0-9_-]{4,40}$/', $label)) {
+            $errors[] = $this->l('Etykieta konwersji Google Ads może zawierać tylko litery, cyfry, „_” i „-” (4–40 znaków) — wpisz część po ukośniku z send_to, np. AbCdEfGh_123.');
+        }
+        if ($label !== '' && $ads === '') {
+            $errors[] = $this->l('Etykieta konwersji wymaga podania identyfikatora konwersji Google Ads (AW-…).');
+        }
 
         if ($errors) {
             return $this->displayError(implode('<br>', $errors));
@@ -705,6 +716,8 @@ class Scm_Cookieconsent extends Module
         Configuration::updateValue(self::CONFIG_PREFIX . 'GA4_ID',        $ga4);
         Configuration::updateValue(self::CONFIG_PREFIX . 'ADS_ID',        $ads);
         Configuration::updateValue(self::CONFIG_PREFIX . 'META_PIXEL_ID', $meta);
+        Configuration::updateValue(self::CONFIG_PREFIX . 'ADS_CONVERSION_LABEL', $label);
+        Configuration::updateValue(self::CONFIG_PREFIX . 'ADS_FORCE_DIRECT', $force);
 
         $output = $this->displayConfirmation($this->l('Ustawienia integracji zostały zapisane.'));
 
@@ -713,6 +726,15 @@ class Scm_Cookieconsent extends Module
         }
         if ($gtm !== '' && ($ga4 !== '' || $ads !== '')) {
             $output .= $this->displayWarning($this->l('Skonfigurowano GTM oraz bezpośrednie tagi gtag.js. Upewnij się, że GA4/Google Ads nie są również wdrożone w kontenerze GTM — grozi to podwójnym zliczaniem.'));
+        }
+        if ($ads !== '' && $label === '' && ($gtm === '' || $force)) {
+            $output .= $this->displayWarning($this->l('Podano identyfikator Google Ads bez etykiety konwersji — konwersje NIE będą rejestrowane, dopóki nie wpiszesz etykiety (zakup).'));
+        }
+        if ($gtm !== '' && $force) {
+            $output .= $this->displayWarning($this->l('Włączono bezpośrednie wysyłanie konwersji Google Ads przy aktywnym GTM. Upewnij się, że tag konwersji Google Ads NIE jest również skonfigurowany w kontenerze GTM — inaczej konwersje będą liczone podwójnie.'));
+        }
+        if ($force && $ads === '') {
+            $output .= $this->displayInformation($this->l('Opcja bezpośredniego wysyłania konwersji nie ma efektu bez identyfikatora Google Ads.'));
         }
 
         return $output;
@@ -917,7 +939,7 @@ class Scm_Cookieconsent extends Module
             'COMPANY_NAME', 'COMPANY_ADDRESS', 'COMPANY_EMAIL', 'PRIVACY_URL',
             'EXPIRY_DAYS', 'POSITION', 'COLOR_PRIMARY', 'COLOR_ACCENT', 'SHOW_REOPEN',
             'GCM_ENABLED', 'GCM_WAIT_MS', 'GCM_URL_PASSTHROUGH', 'GCM_ADS_REDACTION', 'GCM_REGION', 'GCM_SECURITY_GRANTED',
-            'GTM_ID', 'GA4_ID', 'ADS_ID', 'META_PIXEL_ID',
+            'GTM_ID', 'GA4_ID', 'ADS_ID', 'META_PIXEL_ID', 'ADS_CONVERSION_LABEL', 'ADS_FORCE_DIRECT',
         ];
 
         $out = [];
@@ -1078,6 +1100,8 @@ class Scm_Cookieconsent extends Module
             'ga4Id'       => trim((string) $cfg['GA4_ID']),
             'adsId'       => trim((string) $cfg['ADS_ID']),
             'metaPixelId' => trim((string) $cfg['META_PIXEL_ID']),
+            'adsConversionLabel' => trim((string) $cfg['ADS_CONVERSION_LABEL']),
+            'adsForceDirect'     => (bool) (int) $cfg['ADS_FORCE_DIRECT'],
         ];
 
         $this->context->smarty->assign([

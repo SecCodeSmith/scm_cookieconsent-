@@ -12,6 +12,7 @@ A professional cookie consent module for PrestaShop **1.7 / 8.x / 9.x** — comp
 | ✅ | **Multilanguage out of the box: Polish, English, German, French** (other shop languages fall back to English); every text editable per language from the admin panel |
 | ✅ | Google Consent Mode v2 — `consent default` before any tags load, `consent update` after the user's choice |
 | ✅ | Automatic tag injection: **Google Tag Manager**, **Google Analytics 4**, **Google Ads** (gtag.js) — gated by Consent Mode |
+| ✅ | **Google Ads purchase conversions** sent by the module itself (`conversion` event with `send_to`, value, currency, transaction_id) — in direct `gtag.js` mode, or alongside GTM with an opt-in switch |
 | ✅ | **Meta Pixel** loaded only after marketing consent (`ad_storage=granted`) — zero requests to Meta before consent; `fbq consent grant/revoke` |
 | ✅ | `scm_consent_update` dataLayer event after every consent change — ready-made GTM trigger |
 | ✅ | Three banner positions: bottom bar, centered modal, bottom-left panel |
@@ -38,7 +39,7 @@ Default texts and default cookie categories ship in **Polish, English, German an
 1. **Settings** — data controller (name, address, e-mail), privacy policy URL, consent lifetime, banner position, reopen widget visibility
 2. **Texts** — title, intro, all button labels, toggle labels and the legal footer — each editable per language
 3. **Cookie categories** — full CRUD with per-language name/description: add, edit, enable/disable, delete (required categories are protected)
-4. **Integrations** — GTM / GA4 / Google Ads / Meta Pixel IDs with format validation and configuration status; the module injects the tags itself in the correct order
+4. **Integrations** — GTM / GA4 / Google Ads / Meta Pixel IDs with format validation, the **Google Ads conversion label (purchase)** and a *send Ads conversions directly from the module* switch, plus a status table that tells you whether conversions are sent by the module, expected from your GTM container, or missing a label; the module injects the tags itself in the correct order
 5. **Consent Mode v2** — enable switch, `wait_for_update`, `url_passthrough`, `ads_data_redaction`, `security_storage`, regional scoping, signal map
 6. **Appearance** — brand colors (primary + accent) with instant preview
 7. **GDPR help** — compliance checklists, key legal bases, links to UODO, EUR-Lex, EDPB
@@ -59,7 +60,7 @@ The banner, the cookie categories and Consent Mode v2 all render from the module
 
 The only thing a theme must do is call the standard `displayHeader` hook, which essentially every PrestaShop theme does (it's how `<head>` assets get injected in the first place). Everything else the module needs to *display* — the banner markup and the GA4 ecommerce payload — used to depend solely on the `displayBeforeBodyClosingTag` hook, which some minimal/custom themes never call, silently leaving the shop with no consent banner at all. As of 1.6.0 that same rendering is registered on **three** hooks — `displayBeforeBodyClosingTag`, `displayFooter`, `displayFooterAfter` — and de-duplicated internally so it prints exactly once no matter how many of the three the active theme actually fires. In practice this covers Classic, Hummingbird and virtually every commercial/custom theme without any per-theme configuration.
 
-The one hook the module cannot route around is `displayOrderConfirmation` (used only for the GA4 `purchase` event) — if a theme's order confirmation page omits it, purchase tracking (not the banner itself) won't fire for that theme.
+The one hook the module cannot route around is `displayOrderConfirmation` (used for the GA4 `purchase` event and the Google Ads conversion) — if a theme's order confirmation page omits it, purchase tracking and the Ads conversion (not the banner itself) won't fire for that theme.
 
 **1.6.4 reverted the 1.6.3 cache-busting attempt — it broke asset loading entirely.** 1.6.3 appended `?v=<module version>` to the CSS/JS URLs passed to `registerStylesheet()`/`registerJavascript()`/`addCSS()`/`addJS()` to fight stale caches. On a live store (hialumed.pl) this made the banner disappear completely: PrestaShop's asset registration runs `file_exists()` against the literal path string and does not strip the query string first, so the check failed and the CSS/JS silently never got emitted into `<head>` at all — no error, just a banner with no styles or behavior. 1.6.4 removes the query string and goes back to plain, unversioned paths. **The takeaway: don't cache-bust PrestaShop module assets via a query string on the registered path.** If stale assets are suspected after an update, clear the cache manually (Preferences → Performance, plus any CDN/reverse-proxy cache in front of the shop) instead.
 
@@ -99,6 +100,25 @@ gtag('consent', 'update',  { analytics_storage: 'granted', ... });              
 
 **Important:** if you enter IDs in the **Integrations** tab, the module injects the tags itself directly **after** the `default` signal — do not add the same tags manually. **GTM is the preferred path**: when a GTM container is configured (your own or from an external marketing module), direct `gtag.js` (GA4/Ads) is NOT loaded — configure GA4/Ads tags inside the GTM container instead. Direct `gtag.js` works only as a fallback when no GTM container exists.
 
+### Google tag modes and event routing (1.7.0)
+
+At `DOMContentLoaded` the head bootstrap decides which Google tag it actually ended up with and exposes the result as `window.SCM_GCM.mode`:
+
+| Situation | `mode.ecommerce` | `mode.ads` |
+| --- | --- | --- |
+| GTM container present (own or external), direct-send switch off | `gtm` | `container` |
+| GTM container present, direct-send switch on | `gtm` | `gtag` |
+| No container — module loaded `gtag.js` itself | `gtag` | `gtag` (or `none` without an Ads ID) |
+| External `gtag.js` only, direct-send on | `none` | `gtag` |
+| Consent Mode disabled / nothing configured | `none` | `none` |
+
+All ecommerce events go through one entry point, `window.SCM_GCM.track(name, params)`, and the purchase through `window.SCM_GCM.purchase(payload)`:
+
+- `mode.ecommerce === 'gtag'` → events are sent as `gtag('event', name, params)`, so GA4 (and Ads remarketing) receive them. Before 1.7.0 they were silently dropped in this mode.
+- `mode.ecommerce === 'gtm'` or `'none'` → the **unchanged** dataLayer contract: `dataLayer.push({ ecommerce: null })` followed by `dataLayer.push({ event: name, ecommerce: params })`. Existing GTM triggers keep working.
+- Calls made before the mode is resolved (the inline purchase script runs during HTML parsing) are queued and flushed in order right after resolution.
+- If the bootstrap is missing on a page, `scm_ecommerce.js` and the purchase template fall back to the dataLayer object pair.
+
 Supported Consent Mode signals: `analytics_storage`, `ad_storage`, `ad_user_data`, `ad_personalization`, `functionality_storage`, `personalization_storage`, `security_storage`.
 
 ## Working with external marketing modules (GTM / TagConcierge / PS Marketing with Google)
@@ -108,6 +128,7 @@ If another module already injects Google tags (e.g. **TagConcierge GTM**, **PS M
 1. **Does not load a second container** — it detects active marketing modules (and an existing `gtm.js`/`gtag.js` script in the DOM) and skips its own GTM/GA4/Ads injection; a warning is shown in the admin panel.
 2. **Places itself first in the `displayHeader` hook** — the `consent default` signal is emitted before the external module's GTM snippet.
 3. **For returning visitors it sends `consent update` already in `<head>`** — `update` takes precedence over any later external `consent default`, so the saved choice is never overwritten.
+4. **Resolves the tag mode at runtime** (`window.SCM_GCM.mode`) and routes ecommerce events accordingly — an external container keeps receiving the unchanged `{ event, ecommerce }` dataLayer pushes.
 
 The external module's tags are still governed by this module's Consent Mode v2 (default + update), and the `scm_consent_update` event can be used as a GTM trigger.
 
@@ -122,6 +143,27 @@ After every consent change the module publishes a `dataLayer` event:
 ```
 
 — use it in GTM as a trigger for consent-dependent tags.
+
+## Google Ads conversion tracking
+
+1. In Google Ads open the purchase conversion action → *Tag setup* → *Install the tag yourself* → **event snippet**. It contains `send_to: 'AW-123456789/AbCdEfGh_123'`.
+2. In **Integrations** enter the part before the slash as the *Google Ads conversion ID* and the part after the slash as the *conversion label (purchase)*. The label is case-sensitive.
+3. On the order-confirmation page the module sends:
+
+```js
+gtag('event', 'conversion', {
+  send_to: 'AW-123456789/AbCdEfGh_123',
+  value: 149.9,           // total paid incl. tax (same figure as the GA4 purchase value)
+  currency: 'PLN',
+  transaction_id: 'ORDER_REFERENCE'
+});
+```
+
+The GA4 `purchase` event is still sent separately. Both are sent at most once per order per browser session (reloading the confirmation page does not report the order again), and Google de-duplicates on `transaction_id` as a second line.
+
+**With a GTM container** the module stays hands-off by default: build the Ads conversion tag inside GTM with a *Custom Event* trigger on `purchase` and map `ecommerce.value`, `ecommerce.currency`, `ecommerce.transaction_id` from the data layer. If you prefer the module to send conversions itself, switch on *send Ads conversions directly from the module* — the module then loads `gtag.js` for the `AW-` ID next to the container and fires the conversion — and **remove the conversion tag from GTM**. Exactly one of the two must own the tag, otherwise every order is counted twice; the Integrations status table shows which one currently does.
+
+**Consent:** the conversion event is submitted regardless of the visitor's choice; Consent Mode v2 decides what the Google tag does with it. With marketing consent denied the tag sends a cookieless, modelled ping (no advertising cookies), exactly as for pageviews. With Consent Mode disabled no Google tag is loaded at all, so nothing is sent.
 
 ## Configuration keys (`Configuration`)
 
@@ -139,6 +181,8 @@ After every consent change the module publishes a `dataLayer` event:
 | `SCM_COOKIE_GTM_ID` | *(empty — GTM disabled)* |
 | `SCM_COOKIE_GA4_ID` | *(empty — GA4 disabled)* |
 | `SCM_COOKIE_ADS_ID` | *(empty — Google Ads disabled)* |
+| `SCM_COOKIE_ADS_CONVERSION_LABEL` | *(empty — Ads conversions not sent)* |
+| `SCM_COOKIE_ADS_FORCE_DIRECT` | `0` (with GTM the container owns the Ads tag) |
 | `SCM_COOKIE_META_PIXEL_ID` | *(empty — Meta Pixel disabled)* |
 | `SCM_COOKIE_GCM_*` | Consent Mode v2 settings (`GCM_ENABLED=1`, `GCM_WAIT_MS=500`, …) |
 | `SCM_COOKIE_TXT_*` | banner texts, stored **per language** (PL/EN/DE/FR defaults) |
@@ -187,7 +231,7 @@ npx terser views/js/src/gcm_bootstrap.src.js -c -m   # paste the result into {li
 | `displayBeforeBodyClosingTag` | banner rendering + inline configuration (1st candidate — see "Theme independence") |
 | `displayFooter` | banner rendering fallback for themes that don't call the hook above |
 | `displayFooterAfter` | banner rendering fallback for themes that don't call either hook above |
-| `displayOrderConfirmation` | GA4 `purchase` event with real order data |
+| `displayOrderConfirmation` | GA4 `purchase` event with real order data + Google Ads `conversion` event (when a conversion label is configured) |
 
 The three banner-rendering hooks all call the same internal `renderBannerAndEcommerce()` method, which renders the banner exactly once per page even if a theme fires more than one of them.
 

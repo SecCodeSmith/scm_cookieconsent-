@@ -524,6 +524,19 @@
                         {if $scm_config.ADS_ID}
                             <span class="scm-badge scm-badge-success"><i class="icon-check"></i> {l s='Aktywny' mod='scm_cookieconsent'}</span>
                             <code class="scm-code">{$scm_config.ADS_ID|escape:'html':'UTF-8'}</code>
+                            <br>
+                            {if $scm_config.ADS_CONVERSION_LABEL && (!$scm_config.GTM_ID || $scm_config.ADS_FORCE_DIRECT)}
+                                <span class="scm-badge scm-badge-success"><i class="icon-check"></i> {l s='Konwersje: wysyłane przez moduł' mod='scm_cookieconsent'}</span>
+                                <code class="scm-code">{$scm_config.ADS_ID|escape:'html':'UTF-8'}/{$scm_config.ADS_CONVERSION_LABEL|escape:'html':'UTF-8'}</code>
+                            {elseif $scm_config.GTM_ID && !$scm_config.ADS_FORCE_DIRECT}
+                                <span class="scm-badge scm-badge-default">{l s='Konwersje: oczekiwane z kontenera GTM' mod='scm_cookieconsent'}</span>
+                                <small class="text-muted">{l s='(skonfiguruj tag konwersji w GTM — patrz instrukcja GTM, krok 3)' mod='scm_cookieconsent'}</small>
+                                {if $scm_config.ADS_CONVERSION_LABEL}
+                                    <code class="scm-code">{$scm_config.ADS_ID|escape:'html':'UTF-8'}/{$scm_config.ADS_CONVERSION_LABEL|escape:'html':'UTF-8'}</code>
+                                {/if}
+                            {else}
+                                <span class="scm-badge scm-badge-warning"><i class="icon-warning-sign"></i> {l s='Brak etykiety konwersji' mod='scm_cookieconsent'}</span>
+                            {/if}
                         {else}
                             <span class="scm-badge scm-badge-default">{l s='Nieskonfigurowany' mod='scm_cookieconsent'}</span>
                         {/if}
@@ -585,6 +598,28 @@
                     <p class="help-block">{l s='Tag konwersji / remarketingu Google Ads (gtag.js). Sygnały ad_storage, ad_user_data i ad_personalization są przekazywane automatycznie; przy odmowie działa modelowanie konwersji + url_passthrough.' mod='scm_cookieconsent'}</p>
                 </div>
             </div>
+
+            <div class="form-group">
+                <label class="control-label col-lg-3">{l s='Google Ads — etykieta konwersji (zakup)' mod='scm_cookieconsent'}</label>
+                <div class="col-lg-4">
+                    <input type="text" name="SCM_COOKIE_ADS_CONVERSION_LABEL" value="{$scm_config.ADS_CONVERSION_LABEL|escape:'html':'UTF-8'}" class="form-control" placeholder="np. AbCdEfGh_123" pattern="[A-Za-z0-9_-]{literal}{4,40}{/literal}">
+                    <p class="help-block">{l s='Etykieta konwersji zakupu z Google Ads (Cele → Konwersje → tag → fragment zdarzenia): w send_to: \'AW-123456789/AbCdEfGh_123\' wpisz tylko część po ukośniku. Wielkość liter ma znaczenie. Bez etykiety moduł nie wyśle zdarzenia konwersji.' mod='scm_cookieconsent'}</p>
+                </div>
+            </div>
+
+            <div class="form-group">
+                <label class="control-label col-lg-3">{l s='Konwersje Google Ads bezpośrednio z modułu (także przy GTM)' mod='scm_cookieconsent'}</label>
+                <div class="col-lg-6">
+                    <span class="switch prestashop-switch fixed-width-lg">
+                        <input type="radio" name="SCM_COOKIE_ADS_FORCE_DIRECT" id="ads_force_on"  value="1" {if $scm_config.ADS_FORCE_DIRECT}checked{/if}>
+                        <label for="ads_force_on">{l s='TAK' mod='scm_cookieconsent'}</label>
+                        <input type="radio" name="SCM_COOKIE_ADS_FORCE_DIRECT" id="ads_force_off" value="0" {if !$scm_config.ADS_FORCE_DIRECT}checked{/if}>
+                        <label for="ads_force_off">{l s='NIE' mod='scm_cookieconsent'}</label>
+                        <a class="slide-button btn"></a>
+                    </span>
+                    <p class="help-block">{l s='Domyślnie przy skonfigurowanym GTM to kontener jest właścicielem tagów Google Ads (tag konwersji ustawiasz w GTM, wyzwalacz: zdarzenie purchase). Włącz, jeśli moduł ma sam załadować tag Google Ads (gtag.js) obok GTM i wysyłać konwersje — wtedy USUŃ tag konwersji z kontenera, inaczej konwersje będą liczone podwójnie. Bez GTM moduł zawsze wysyła konwersje sam.' mod='scm_cookieconsent'}</p>
+                </div>
+            </div>
         </fieldset>
 
         <fieldset class="scm-fieldset">
@@ -617,6 +652,8 @@
                 <li>{l s='Po każdej zmianie zgody moduł wysyła zdarzenie dataLayer "scm_consent_update" — użyj go w GTM jako wyzwalacza dla tagów wymagających zgody.' mod='scm_cookieconsent'}</li>
                 <li>{l s='Moduł celowo nie dodaje iframe <noscript> GTM: bez JavaScript nie można wyrazić zgody, więc taki iframe działałby bez podstawy prawnej.' mod='scm_cookieconsent'}</li>
                 <li>{l s='Powiązanie z kategoriami: Analityczne → analytics_storage (GA4), Marketingowe → ad_storage + ad_user_data + ad_personalization (Google Ads, Meta Pixel).' mod='scm_cookieconsent'}</li>
+                <li>{l s='Konwersje Google Ads: w trybie bezpośrednim (bez GTM) moduł wysyła na stronie potwierdzenia zamówienia zdarzenie conversion z send_to \'AW-ID/ETYKIETA\', wartością, walutą i numerem zamówienia, a zdarzenia e-commerce GA4 (view_item, add_to_cart, begin_checkout, purchase) trafiają do gtag.js jako gtag(\'event\'). Przy GTM moduł nadal publikuje je w dataLayer bez zmian.' mod='scm_cookieconsent'}</li>
+                <li>{l s='Moduł blokuje podwójne liczenie: zdarzenia są wysyłane w jednym trybie (GTM albo gtag.js), a zakup jest raportowany najwyżej raz na zamówienie w sesji.' mod='scm_cookieconsent'}</li>
             </ul>
         </div>
     </div>
@@ -762,7 +799,7 @@
             <p>{l s='NIE konfiguruj "Consent default" w GTM jeżeli używasz tego modułu — moduł już ustawia consent default w head. W GTM włącz tylko "Consent Overview" w ustawieniach kontenera, aby tagi respektowały sygnały consent.' mod='scm_cookieconsent'}</p>
 
             <h4 style="margin-top:14px;">{l s='Krok 3: Konfiguracja tagów w GTM' mod='scm_cookieconsent'}</h4>
-            <p>{l s='Dla każdego tagu (GA4, Meta Pixel, Google Ads conversion) w sekcji "Advanced Settings → Consent Settings" wybierz "Require additional consent" i zaznacz odpowiednie sygnały (np. analytics_storage dla GA4, ad_storage + ad_user_data + ad_personalization dla Google Ads).' mod='scm_cookieconsent'}</p>
+            <p>{l s='Dla każdego tagu (GA4, Meta Pixel, Google Ads conversion) w sekcji "Advanced Settings → Consent Settings" wybierz "Require additional consent" i zaznacz odpowiednie sygnały (np. analytics_storage dla GA4, ad_storage + ad_user_data + ad_personalization dla Google Ads). Tag konwersji Google Ads ustaw na wyzwalacz zdarzenia niestandardowego purchase i mapuj zmienne warstwy danych ecommerce.value, ecommerce.currency, ecommerce.transaction_id. Alternatywnie włącz w zakładce Integracje opcję „Konwersje Google Ads bezpośrednio z modułu” i usuń tag konwersji z GTM.' mod='scm_cookieconsent'}</p>
         </div>
     </div>
     {/if}

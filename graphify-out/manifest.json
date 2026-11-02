@@ -1,0 +1,176 @@
+{
+  ".claude/settings.json": {
+    "mtime": 1793564508.699087,
+    "seen": 1793566194.2199392,
+    "ast_hash": "ec1c122bc38fb5b9914ce1829f295ad3",
+    "semantic_hash": "ec1c122bc38fb5b9914ce1829f295ad3"
+  },
+  "build.ps1": {
+    "mtime": 1793637914.228824,
+    "seen": 1793637916.4499705,
+    "ast_hash": "cda3de6fef5742824fe5486702311cdf",
+    "semantic_hash": ""
+  },
+  "scm_cookieconsent.php": {
+    "mtime": 1793637690.6754348,
+    "seen": 1793637916.4499724,
+    "ast_hash": "17028dbd3e3a9b4c5b91196a2edb8849",
+    "semantic_hash": ""
+  },
+  "upgrade/upgrade-1.5.0.php": {
+    "mtime": 1781614401.5388803,
+    "seen": 1793566194.219946,
+    "ast_hash": "16e2dcb95ecafd0b50de221a4d4a7bf4",
+    "semantic_hash": "16e2dcb95ecafd0b50de221a4d4a7bf4"
+  },
+  "upgrade/upgrade-1.6.0.php": {
+    "mtime": 1784555235.8125966,
+    "seen": 1793566194.219947,
+    "ast_hash": "a6ff150f097109a63fe37be7b3e6124e",
+    "semantic_hash": "a6ff150f097109a63fe37be7b3e6124e"
+  },
+  "views/js/scm_cookieconsent.js": {
+    "mtime": 1784558395.2083883,
+    "seen": 1793566194.2199478,
+    "ast_hash": "76672b536b63250faed621c81013047b",
+    "semantic_hash": "76672b536b63250faed621c81013047b"
+  },
+  "views/js/scm_cookieconsent.min.js": {
+    "mtime": 1784558455.336895,
+    "seen": 1793566194.2199488,
+    "ast_hash": "bc58359454e8b2ec276d598f6ae3cbfe",
+    "semantic_hash": "bc58359454e8b2ec276d598f6ae3cbfe"
+  },
+  "views/js/scm_ecommerce.js": {
+    "mtime": 1793637694.545215,
+    "seen": 1793637916.44998,
+    "ast_hash": "9db9823951279d15e4a91b99b25d6213",
+    "semantic_hash": ""
+  },
+  "views/js/src/gcm_bootstrap.src.js": {
+    "mtime": 1793637683.8283913,
+    "seen": 1793637916.449981,
+    "ast_hash": "073396270d66dba87a91e8de7a224a63",
+    "semantic_hash": ""
+  },
+  ".claude/skills/openspec-apply-change/SKILL.md": {
+    "mtime": 1793564522.968684,
+    "seen": 1793566194.2199507,
+    "ast_hash": "2b12e67f11428dbf0f2182b743e95380",
+    "semantic_hash": "2b12e67f11428dbf0f2182b743e95380"
+  },
+  ".claude/skills/openspec-archive-change/SKILL.md": {
+    "mtime": 1793564522.972751,
+    "seen": 1793566194.2199514,
+    "ast_hash": "2e8b9e7e0466b417487565c25ac09233",
+    "semantic_hash": "2e8b9e7e0466b417487565c25ac09233"
+  },
+  ".claude/skills/openspec-explore/SKILL.md": {
+    "mtime": 1793564522.9666796,
+    "seen": 1793566194.219952,
+    "ast_hash": "c9c0af9ca015b09a9aacc0e613220142",
+    "semantic_hash": "c9c0af9ca015b09a9aacc0e613220142"
+  },
+  ".claude/skills/openspec-propose/SKILL.md": {
+    "mtime": 1793564522.9740486,
+    "seen": 1793566194.2199528,
+    "ast_hash": "bbeeebff03c5e9187187b29688371bd4",
+    "semantic_hash": "bbeeebff03c5e9187187b29688371bd4"
+  },
+  ".claude/skills/openspec-sync-specs/SKILL.md": {
+    "mtime": 1793564522.9717493,
+    "seen": 1793566194.2199533,
+    "ast_hash": "95ea3c8b0ac5e7d81a5297759d832859",
+    "semantic_hash": "95ea3c8b0ac5e7d81a5297759d832859"
+  },
+  ".claude/skills/openspec-update-change/SKILL.md": {
+    "mtime": 1793564522.9707448,
+    "seen": 1793566194.2199543,
+    "ast_hash": "7a4fbeca10021f32441941bac76d3e4f",
+    "semantic_hash": "7a4fbeca10021f32441941bac76d3e4f"
+  },
+  ".github/workflows/build.yml": {
+    "mtime": 1786438963.3189216,
+    "seen": 1793566194.2199547,
+    "ast_hash": "60e008bed4758e8b746cd3bb702e5e16",
+    "semantic_hash": "60e008bed4758e8b746cd3bb702e5e16"
+  },
+  "CLAUDE.md": {
+    "mtime": 1793564508.6853876,
+    "seen": 1793566194.2199554,
+    "ast_hash": "67d88e9d0760c3ba54c75dfd9551c1c5",
+    "semantic_hash": "67d88e9d0760c3ba54c75dfd9551c1c5"
+  },
+  "README.md": {
+    "mtime": 1793637677.9707544,
+    "seen": 1793637916.4499886,
+    "ast_hash": "e688288b819dfbbeebc10f180996fbba",
+    "semantic_hash": ""
+  },
+  "openspec/changes/add-google-ads-conversion-tracking/.openspec.yaml": {
+    "mtime": 1793564798.933211,
+    "seen": 1793566194.2199566,
+    "ast_hash": "3623ba4db4ed24298de5b5828c49c15f",
+    "semantic_hash": "3623ba4db4ed24298de5b5828c49c15f"
+  },
+  "openspec/changes/add-google-ads-conversion-tracking/design.md": {
+    "mtime": 1793565227.3918576,
+    "seen": 1793566194.2199574,
+    "ast_hash": "bc977543d7724f67435c1ab95f26d814",
+    "semantic_hash": "bc977543d7724f67435c1ab95f26d814"
+  },
+  "openspec/changes/add-google-ads-conversion-tracking/proposal.md": {
+    "mtime": 1793564972.325095,
+    "seen": 1793566194.219958,
+    "ast_hash": "98135debbef74c60c1dd4f27db91870c",
+    "semantic_hash": "98135debbef74c60c1dd4f27db91870c"
+  },
+  "openspec/changes/add-google-ads-conversion-tracking/specs/google-ads-conversion-tracking/spec.md": {
+    "mtime": 1793565226.565202,
+    "seen": 1793566194.2199585,
+    "ast_hash": "0904c3f07744e2e813898a45e340a18c",
+    "semantic_hash": "0904c3f07744e2e813898a45e340a18c"
+  },
+  "openspec/changes/add-google-ads-conversion-tracking/specs/google-tag-integration/spec.md": {
+    "mtime": 1793565071.0823205,
+    "seen": 1793566194.2199595,
+    "ast_hash": "c1c87751bb0da73cda186454eadf8461",
+    "semantic_hash": "c1c87751bb0da73cda186454eadf8461"
+  },
+  "openspec/changes/add-google-ads-conversion-tracking/tasks.md": {
+    "mtime": 1793637876.7211666,
+    "seen": 1793637916.4499934,
+    "ast_hash": "b6e65e45deb6ca1681411e92db023d95",
+    "semantic_hash": ""
+  },
+  "openspec/config.yaml": {
+    "mtime": 1793564522.9846137,
+    "seen": 1793566194.219961,
+    "ast_hash": "500a0a16229f8fd0848dc7cff85d21e9",
+    "semantic_hash": "500a0a16229f8fd0848dc7cff85d21e9"
+  },
+  "docs/banner-modal-pl.png": {
+    "mtime": 1781206052.788542,
+    "seen": 1793566194.2199614,
+    "ast_hash": "3eaeade005c091932d0c3e8841ff8002",
+    "semantic_hash": "3eaeade005c091932d0c3e8841ff8002"
+  },
+  "logo.png": {
+    "mtime": 1786438637.8730454,
+    "seen": 1793566194.2199621,
+    "ast_hash": "125914d7e083d27a48b78b7fdd6782d8",
+    "semantic_hash": "125914d7e083d27a48b78b7fdd6782d8"
+  },
+  "views/img/cookie-bite.svg": {
+    "mtime": 1781205023.3663456,
+    "seen": 1793566194.2199626,
+    "ast_hash": "d89d2c401d314294e3cd238fbff11559",
+    "semantic_hash": "d89d2c401d314294e3cd238fbff11559"
+  },
+  "upgrade/upgrade-1.7.0.php": {
+    "mtime": 1793637679.9600015,
+    "seen": 1793637916.4499772,
+    "ast_hash": "1c060a4e806bd23c9848718a26281369",
+    "semantic_hash": ""
+  }
+}

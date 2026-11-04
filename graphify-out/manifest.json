@@ -12,9 +12,9 @@
     "semantic_hash": ""
   },
   "scm_cookieconsent.php": {
-    "mtime": 1793637690.6754348,
-    "seen": 1793637916.4499724,
-    "ast_hash": "17028dbd3e3a9b4c5b91196a2edb8849",
+    "mtime": 1793811250.2715504,
+    "seen": 1793811306.4930716,
+    "ast_hash": "6dde26a757f16b08a67f788beb25d636",
     "semantic_hash": ""
   },
   "upgrade/upgrade-1.5.0.php": {
@@ -42,15 +42,15 @@
     "semantic_hash": "bc58359454e8b2ec276d598f6ae3cbfe"
   },
   "views/js/scm_ecommerce.js": {
-    "mtime": 1793637694.545215,
-    "seen": 1793637916.44998,
-    "ast_hash": "9db9823951279d15e4a91b99b25d6213",
+    "mtime": 1793811149.4096477,
+    "seen": 1793811306.4930804,
+    "ast_hash": "a4e313d728a22bcf2aa36f24d563f4de",
     "semantic_hash": ""
   },
   "views/js/src/gcm_bootstrap.src.js": {
-    "mtime": 1793637683.8283913,
-    "seen": 1793637916.449981,
-    "ast_hash": "073396270d66dba87a91e8de7a224a63",
+    "mtime": 1793810807.1815758,
+    "seen": 1793811306.4930813,
+    "ast_hash": "75cfb13c010e20952db7c0f469419fa2",
     "semantic_hash": ""
   },
   ".claude/skills/openspec-apply-change/SKILL.md": {
@@ -102,9 +102,9 @@
     "semantic_hash": "67d88e9d0760c3ba54c75dfd9551c1c5"
   },
   "README.md": {
-    "mtime": 1793637677.9707544,
-    "seen": 1793637916.4499886,
-    "ast_hash": "e688288b819dfbbeebc10f180996fbba",
+    "mtime": 1793811235.155099,
+    "seen": 1793811306.4930892,
+    "ast_hash": "d15aee64186401e2efee790775a9375a",
     "semantic_hash": ""
   },
   "openspec/changes/add-google-ads-conversion-tracking/.openspec.yaml": {
@@ -138,9 +138,9 @@
     "semantic_hash": "c1c87751bb0da73cda186454eadf8461"
   },
   "openspec/changes/add-google-ads-conversion-tracking/tasks.md": {
-    "mtime": 1793637876.7211666,
-    "seen": 1793637916.4499934,
-    "ast_hash": "b6e65e45deb6ca1681411e92db023d95",
+    "mtime": 1793637931.123478,
+    "seen": 1793811306.4930942,
+    "ast_hash": "9593f8237351e8e80a7183aae25aac2d",
     "semantic_hash": ""
   },
   "openspec/config.yaml": {
@@ -171,6 +171,48 @@
     "mtime": 1793637679.9600015,
     "seen": 1793637916.4499772,
     "ast_hash": "1c060a4e806bd23c9848718a26281369",
+    "semantic_hash": ""
+  },
+  "upgrade/upgrade-1.8.0.php": {
+    "mtime": 1793811250.3355026,
+    "seen": 1793811306.4930768,
+    "ast_hash": "df91c485bc9d1aa378a90967f91a30ad",
+    "semantic_hash": ""
+  },
+  "openspec/changes/complete-ga4-ecommerce-measurement/.openspec.yaml": {
+    "mtime": 1793810263.795271,
+    "seen": 1793811306.493095,
+    "ast_hash": "69c36d23f2f6a5ad6d931f82c72ac905",
+    "semantic_hash": ""
+  },
+  "openspec/changes/complete-ga4-ecommerce-measurement/design.md": {
+    "mtime": 1793810498.227982,
+    "seen": 1793811306.4930956,
+    "ast_hash": "ba57d6608c8bcb7e5cff75c1567bc195",
+    "semantic_hash": ""
+  },
+  "openspec/changes/complete-ga4-ecommerce-measurement/proposal.md": {
+    "mtime": 1793810375.1958177,
+    "seen": 1793811306.4930964,
+    "ast_hash": "8724373f22bd9446712f342e4ac81b93",
+    "semantic_hash": ""
+  },
+  "openspec/changes/complete-ga4-ecommerce-measurement/specs/ga4-ecommerce-events/spec.md": {
+    "mtime": 1793810431.5287251,
+    "seen": 1793811306.4930973,
+    "ast_hash": "139444d3645a665b394908b02a7a24f1",
+    "semantic_hash": ""
+  },
+  "openspec/changes/complete-ga4-ecommerce-measurement/specs/ga4-user-events/spec.md": {
+    "mtime": 1793810375.1968162,
+    "seen": 1793811306.493098,
+    "ast_hash": "648314f482583bde4a4430a54b129b5e",
+    "semantic_hash": ""
+  },
+  "openspec/changes/complete-ga4-ecommerce-measurement/tasks.md": {
+    "mtime": 1793811299.5471828,
+    "seen": 1793811306.4930985,
+    "ast_hash": "b200db36eceecdfd21e0f29403054254",
     "semantic_hash": ""
   }
 }

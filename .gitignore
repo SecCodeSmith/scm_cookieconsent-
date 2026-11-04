@@ -20,3 +20,7 @@ config_*.inc.php
 
 # Logs
 *.log
+
+# E2E test output
+test-results/
+playwright-report/

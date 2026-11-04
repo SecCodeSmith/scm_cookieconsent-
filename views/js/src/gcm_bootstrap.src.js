@@ -157,6 +157,27 @@
         }
     }
 
+    // Non-ecommerce GA4 events (login, sign_up, search): same mode and queue
+    // as track(), but GTM users expect FLAT keys — no { ecommerce: null }
+    // reset and no ecommerce wrapper. ES5 key copy (no Object.assign).
+    function dispatchFlat(name, params) {
+        if (window.SCM_GCM.mode.ecommerce === 'gtag') {
+            gtag('event', name, params);
+            return;
+        }
+        var obj = { event: name };
+        for (var k in params) {
+            if (Object.prototype.hasOwnProperty.call(params, k)) { obj[k] = params[k]; }
+        }
+        window.dataLayer.push(obj);
+    }
+
+    window.SCM_GCM.event = function (name, params) {
+        params = params || {};
+        if (!window.SCM_GCM.ready) { pending.push(['event', name, params]); return; }
+        dispatchFlat(name, params);
+    };
+
     window.SCM_GCM.track = function (name, params) {
         if (!window.SCM_GCM.ready) { pending.push(['track', name, params]); return; }
         dispatchTrack(name, params);
@@ -174,6 +195,7 @@
         pending = [];
         queue.forEach(function (q) {
             if (q[0] === 'purchase') { dispatchPurchase(q[1]); }
+            else if (q[0] === 'event') { dispatchFlat(q[1], q[2]); }
             else { dispatchTrack(q[1], q[2]); }
         });
     }

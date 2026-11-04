@@ -653,6 +653,7 @@
                 <li>{l s='Moduł celowo nie dodaje iframe <noscript> GTM: bez JavaScript nie można wyrazić zgody, więc taki iframe działałby bez podstawy prawnej.' mod='scm_cookieconsent'}</li>
                 <li>{l s='Powiązanie z kategoriami: Analityczne → analytics_storage (GA4), Marketingowe → ad_storage + ad_user_data + ad_personalization (Google Ads, Meta Pixel).' mod='scm_cookieconsent'}</li>
                 <li>{l s='Konwersje Google Ads: w trybie bezpośrednim (bez GTM) moduł wysyła na stronie potwierdzenia zamówienia zdarzenie conversion z send_to \'AW-ID/ETYKIETA\', wartością, walutą i numerem zamówienia, a zdarzenia e-commerce GA4 (view_item, add_to_cart, begin_checkout, purchase) trafiają do gtag.js jako gtag(\'event\'). Przy GTM moduł nadal publikuje je w dataLayer bez zmian.' mod='scm_cookieconsent'}</li>
+                <li>{l s='Zdarzenia GA4: listy produktów (view_item_list, select_item), karta produktu (view_item, także po zmianie kombinacji), koszyk, kroki zamówienia (begin_checkout, add_shipping_info z nazwą przewoźnika, add_payment_info z modułem płatności), zakup z kodami rabatowymi oraz logowanie, rejestracja i wyszukiwanie. Zdarzenie add_shipping_info wymaga standardowego procesu zamówienia PrestaShop — moduły typu one-page-checkout mogą go nie obsługiwać.' mod='scm_cookieconsent'}</li>
                 <li>{l s='Moduł blokuje podwójne liczenie: zdarzenia są wysyłane w jednym trybie (GTM albo gtag.js), a zakup jest raportowany najwyżej raz na zamówienie w sesji.' mod='scm_cookieconsent'}</li>
             </ul>
         </div>
@@ -800,6 +801,9 @@
 
             <h4 style="margin-top:14px;">{l s='Krok 3: Konfiguracja tagów w GTM' mod='scm_cookieconsent'}</h4>
             <p>{l s='Dla każdego tagu (GA4, Meta Pixel, Google Ads conversion) w sekcji "Advanced Settings → Consent Settings" wybierz "Require additional consent" i zaznacz odpowiednie sygnały (np. analytics_storage dla GA4, ad_storage + ad_user_data + ad_personalization dla Google Ads). Tag konwersji Google Ads ustaw na wyzwalacz zdarzenia niestandardowego purchase i mapuj zmienne warstwy danych ecommerce.value, ecommerce.currency, ecommerce.transaction_id. Alternatywnie włącz w zakładce Integracje opcję „Konwersje Google Ads bezpośrednio z modułu” i usuń tag konwersji z GTM.' mod='scm_cookieconsent'}</p>
+
+            <h4 style="margin-top:14px;">{l s='Krok 4: Wyzwalacze zdarzeń GA4' mod='scm_cookieconsent'}</h4>
+            <p>{l s='Moduł publikuje w dataLayer zdarzenia GA4: view_item_list, select_item, view_item, add_to_cart, remove_from_cart, view_cart, begin_checkout, add_shipping_info, add_payment_info, purchase, login, sign_up i search. Dla każdej nazwy utwórz wyzwalacz typu „Zdarzenie niestandardowe”. Tagi zdarzeń GA4 z opcją „Wysyłaj dane e-commerce → Warstwa danych” odczytają zdarzenia e-commerce bez dodatkowych zmiennych. Zdarzenia login, sign_up i search mają płaskie parametry (zmienne warstwy danych: method, search_term). Żadne zdarzenie nie zawiera danych osobowych klienta.' mod='scm_cookieconsent'}</p>
         </div>
     </div>
     {/if}

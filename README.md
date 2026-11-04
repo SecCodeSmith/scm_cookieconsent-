@@ -15,6 +15,7 @@ A professional cookie consent module for PrestaShop **1.7 / 8.x / 9.x** — comp
 | ✅ | **Google Ads purchase conversions** sent by the module itself (`conversion` event with `send_to`, value, currency, transaction_id) — in direct `gtag.js` mode, or alongside GTM with an opt-in switch |
 | ✅ | **Meta Pixel** loaded only after marketing consent (`ad_storage=granted`) — zero requests to Meta before consent; `fbq consent grant/revoke` |
 | ✅ | `scm_consent_update` dataLayer event after every consent change — ready-made GTM trigger |
+| ✅ | **Full GA4 recommended event set** for shops: product lists and clicks, product views, cart, checkout steps (shipping, payment), purchase with vouchers, login, sign-up and search — no personal data |
 | ✅ | Three banner positions: bottom bar, centered modal, bottom-left panel |
 | ✅ | Active cookie removal on rejection (wildcard `*` support) |
 | ✅ | Configurable consent lifetime (default 365 days), JSON `scm_consent` cookie with `SameSite=Lax` |
@@ -118,6 +119,40 @@ All ecommerce events go through one entry point, `window.SCM_GCM.track(name, par
 - `mode.ecommerce === 'gtm'` or `'none'` → the **unchanged** dataLayer contract: `dataLayer.push({ ecommerce: null })` followed by `dataLayer.push({ event: name, ecommerce: params })`. Existing GTM triggers keep working.
 - Calls made before the mode is resolved (the inline purchase script runs during HTML parsing) are queued and flushed in order right after resolution.
 - If the bootstrap is missing on a page, `scm_ecommerce.js` and the purchase template fall back to the dataLayer object pair.
+- Non-ecommerce events (`login`, `sign_up`, `search`, since 1.8.0) go through `window.SCM_GCM.event(name, params)`. It uses the same mode and queue, but in GTM/none mode it pushes **one flat object** — `dataLayer.push({ event: 'login', method: 'PrestaShop' })` — with no `ecommerce` key and no `{ ecommerce: null }` reset.
+
+### GA4 events sent by the module (1.8.0)
+
+| Event | When | Key parameters |
+| --- | --- | --- |
+| `view_item_list` | category, search, brand, supplier, new products, best sales and prices-drop pages; again after AJAX filtering/sorting/pagination | `item_list_id` (`category_12`, `manufacturer_3`, `search`, `best_sales`, …), `item_list_name`, items with `index` |
+| `select_item` | click on a product miniature of that list | `item_list_id`, `item_list_name`, the clicked item with its `index` |
+| `view_item` | product page; again when the visitor switches combination | one item |
+| `add_to_cart` / `remove_from_cart` | cart quantity goes up / down or a line is deleted | changed quantity; a deleted line keeps its full item data |
+| `view_cart` | cart page | all cart lines |
+| `begin_checkout` | every checkout page load | all cart lines, `coupon` |
+| `add_shipping_info` | first checkout page after the delivery step is completed; again only if the carrier changes | `shipping_tier` (carrier name), `coupon` |
+| `add_payment_info` | visitor selects a payment option | `payment_type` (payment module name, e.g. `ps_wirepayment`), `coupon` |
+| `purchase` | order confirmation | `transaction_id`, `value`, `tax`, `shipping`, `currency`, `coupon` |
+| `login` / `sign_up` | first page after a successful login / account creation (not for guest checkout) | `method: 'PrestaShop'` only |
+| `search` | search results page | `search_term` (trimmed, max 100 characters) |
+
+Every ecommerce event except `view_item_list` and `select_item` carries `currency` and `value`. `coupon` lists the applied voucher codes, comma-separated.
+
+**Item shape** (all events): `item_id`, `item_name`, `price` (unit price incl. tax), `quantity`, plus `item_brand`, `item_category`, `item_variant` and `discount` only when they have a value — empty keys are left out. `item_variant` is the combination label, e.g. `Size: M, Color: Blue`, in every event. `discount` is the catalog reduction per unit.
+
+**Upgrade note for GTM users:** before 1.8.0 `view_item` sent the product *reference* as `item_variant`; it now sends the combination label like the cart events do. Variables mapping `ecommerce.items.0.item_variant` will see different values.
+
+**GTM setup:** add a *Custom Event* trigger for each event name above. GA4 event tags with *Send Ecommerce data → Data Layer* read the ecommerce events as they are. For `login`, `sign_up` and `search` read the top-level data layer variables `method` and `search_term`.
+
+**Privacy:** no event carries a customer ID, e-mail, name, phone or a hash of them, and the module sets no GA4 `user_id` / `user_data`. The search term is printed into the page as escaped JSON, so a query containing HTML cannot run as script.
+
+**Limitations:**
+
+- `add_shipping_info` relies on PrestaShop's own checkout marking the delivery step complete. Third-party one-page-checkout modules that replace the core checkout may never do that, so this event is not sent there.
+- `view_item_list` after AJAX filtering needs the `products` array in the listing response (present in PrestaShop 1.7–9 core). If a theme or module strips it, only the page-load list event is sent.
+- The combination-switch `view_item` reads `#product-details[data-product]`, which the core product templates refresh. A custom theme without it sends only the initial `view_item`.
+- `select_item` is sent as the browser follows the link. `gtag.js` delivers it with beacon transport; tags fired from GTM may lose some of these hits. Navigation is never delayed.
 
 Supported Consent Mode signals: `analytics_storage`, `ad_storage`, `ad_user_data`, `ad_personalization`, `functionality_storage`, `personalization_storage`, `security_storage`.
 
@@ -232,6 +267,8 @@ npx terser views/js/src/gcm_bootstrap.src.js -c -m   # paste the result into {li
 | `displayFooter` | banner rendering fallback for themes that don't call the hook above |
 | `displayFooterAfter` | banner rendering fallback for themes that don't call either hook above |
 | `displayOrderConfirmation` | GA4 `purchase` event with real order data + Google Ads `conversion` event (when a conversion label is configured) |
+| `actionAuthentication` | marks a pending GA4 `login` event for the next page (only the event name is stored in the PrestaShop cookie) |
+| `actionCustomerAccountAdd` | marks a pending GA4 `sign_up` event for the next page (skipped for guest accounts) |
 
 The three banner-rendering hooks all call the same internal `renderBannerAndEcommerce()` method, which renders the banner exactly once per page even if a theme fires more than one of them.
 

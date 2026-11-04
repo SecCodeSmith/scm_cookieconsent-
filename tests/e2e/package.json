@@ -1,0 +1,11 @@
+{
+  "name": "scm-cookieconsent-e2e",
+  "private": true,
+  "description": "End-to-end GA4 event tests for scm_cookieconsent against a Dockerised PrestaShop 8.1 (see README.md in this folder).",
+  "scripts": {
+    "test": "playwright test"
+  },
+  "devDependencies": {
+    "@playwright/test": "1.64.1"
+  }
+}

@@ -24,11 +24,20 @@ class Scm_Cookieconsent extends Module
      */
     private $bannerRendered = false;
 
+    /** Per-request lookups for GA4 item building (category names, variants, base names). */
+    private $ga4Cache = ['category' => [], 'variant' => [], 'name' => []];
+
+    /** Context-cookie key holding a pending GA4 account event (login / sign_up). */
+    const GA4_PENDING_COOKIE = 'scm_ga4_evt';
+
+    /** Listing controllers (php_self) that emit view_item_list. */
+    private static $GA4_LIST_PAGES = ['category', 'search', 'manufacturer', 'supplier', 'new-products', 'best-sales', 'prices-drop'];
+
     public function __construct()
     {
         $this->name          = 'scm_cookieconsent';
         $this->tab           = 'front_office_features';
-        $this->version       = '1.7.0';
+        $this->version       = '1.8.0';
         $this->author        = 'SCM Jakub Berechowski';
         $this->need_instance = 0;
         $this->bootstrap     = true;
@@ -137,6 +146,9 @@ class Scm_Cookieconsent extends Module
             && $this->registerHook('displayFooter')
             && $this->registerHook('displayFooterAfter')
             && $this->registerHook('displayOrderConfirmation')
+            // GA4 login / sign_up events (see hookActionAuthentication)
+            && $this->registerHook('actionAuthentication')
+            && $this->registerHook('actionCustomerAccountAdd')
             && $this->createTable()
             && $this->seedDefaults()
             && $this->installConfig();
@@ -1105,9 +1117,9 @@ class Scm_Cookieconsent extends Module
         ];
 
         $this->context->smarty->assign([
-            'scm_gcm_config'     => json_encode($gcmConfig),
-            'scm_gcm_categories' => json_encode($jsCats),
-            'scm_tags_config'    => json_encode($tagsConfig),
+            'scm_gcm_config'     => $this->jsonForScript($gcmConfig),
+            'scm_gcm_categories' => $this->jsonForScript($jsCats),
+            'scm_tags_config'    => $this->jsonForScript($tagsConfig),
         ]);
 
         return $this->display(__FILE__, 'views/templates/hook/gcm_bootstrap.tpl');
@@ -1165,13 +1177,13 @@ class Scm_Cookieconsent extends Module
             'scm_txt_controller'=> $cfg['TXT_CONTROLLER'],
             'scm_txt_close'     => $cfg['TXT_CLOSE'],
             'scm_txt_legal'     => $cfg['TXT_LEGAL'],
-            'scm_js_categories' => json_encode($jsCategories),
+            'scm_js_categories' => $this->jsonForScript($jsCategories),
         ]);
 
         $banner = $this->display(__FILE__, 'views/templates/hook/cookie_banner.tpl');
 
-        // Per-page GA4 ecommerce payload (currency + server-built view_item).
-        $this->context->smarty->assign('scm_ec', json_encode($this->buildEcommercePageData()));
+        // Per-page GA4 payload (currency, view_item, list, checkout, account and search data).
+        $this->context->smarty->assign('scm_ec', $this->jsonForScript($this->buildEcommercePageData()));
 
         return $banner . $this->display(__FILE__, 'views/templates/hook/ecommerce_data.tpl');
     }
@@ -1198,10 +1210,169 @@ class Scm_Cookieconsent extends Module
     /* ============================================================== */
 
     /**
-     * Build the window.SCM_EC payload for the current page: shop currency plus,
-     * on a product page, a fully-populated view_item event (the client-side
-     * `prestashop` object does not expose product price/brand). Cart, checkout,
-     * add/remove events are derived client-side in scm_ecommerce.js.
+     * JSON that is safe to print inside a <script> block. Visitor-controlled
+     * values (the search term) end up here, so <, >, &, ' and " are emitted as
+     * \u00XX escapes — a value can never close the script element.
+     */
+    private function jsonForScript($value)
+    {
+        $flags = JSON_HEX_TAG | JSON_HEX_AMP | JSON_HEX_APOS | JSON_HEX_QUOT | JSON_UNESCAPED_UNICODE;
+        if (defined('JSON_PARTIAL_OUTPUT_ON_ERROR')) {
+            $flags |= JSON_PARTIAL_OUTPUT_ON_ERROR;
+        }
+        // Shortest round-trip floats (19.12, not 19.120000000000001) whatever
+        // serialize_precision the server's php.ini sets.
+        $precision = ini_get('serialize_precision');
+        ini_set('serialize_precision', '-1');
+        $json = json_encode($value, $flags);
+        ini_set('serialize_precision', $precision);
+
+        return $json === false ? 'null' : $json;
+    }
+
+    /** Read a key from an array or an ArrayAccess object (ProductLazyArray). */
+    private static function ga4Val($source, $key, $default = null)
+    {
+        if ((is_array($source) || $source instanceof ArrayAccess) && isset($source[$key])) {
+            return $source[$key];
+        }
+
+        return $default;
+    }
+
+    /**
+     * Build one GA4 item in the shared shape: item_id, item_name, price,
+     * quantity, then item_brand / item_category / item_variant / discount only
+     * when non-empty. Must stay in sync with mapItem() in scm_ecommerce.js.
+     *
+     * $f keys: id_product, id_product_attribute, name, price, regular_price,
+     * quantity, brand, id_manufacturer, id_category, attributes (optional,
+     * presented-product attributes).
+     */
+    private function buildGa4Item(array $f, $idLang)
+    {
+        $idProduct = (int) self::ga4Val($f, 'id_product', 0);
+        $idAttr    = (int) self::ga4Val($f, 'id_product_attribute', 0);
+        $price     = round((float) self::ga4Val($f, 'price', 0), 2);
+
+        $item = [
+            'item_id'   => (string) $idProduct,
+            'item_name' => (string) self::ga4Val($f, 'name', ''),
+            'price'     => $price,
+            'quantity'  => (int) self::ga4Val($f, 'quantity', 1),
+        ];
+
+        $brand = trim((string) self::ga4Val($f, 'brand', ''));
+        if ($brand === '' && (int) self::ga4Val($f, 'id_manufacturer', 0) > 0) {
+            $brand = trim((string) Manufacturer::getNameById((int) $f['id_manufacturer']));
+        }
+        if ($brand !== '') {
+            $item['item_brand'] = $brand;
+        }
+
+        $category = $this->ga4CategoryName((int) self::ga4Val($f, 'id_category', 0), $idLang);
+        if ($category !== '') {
+            $item['item_category'] = $category;
+        }
+
+        $variant = $this->ga4Variant($idProduct, $idAttr, self::ga4Val($f, 'attributes'));
+        if ($variant !== '') {
+            $item['item_variant'] = $variant;
+        }
+
+        $regular = self::ga4Val($f, 'regular_price');
+        if ($regular !== null && $regular !== '') {
+            $discount = round((float) $regular - $price, 2);
+            if ($discount > 0.005) {
+                $item['discount'] = $discount;
+            }
+        }
+
+        return $item;
+    }
+
+    /** Normalise a presented product (array or ProductLazyArray) for buildGa4Item(). */
+    private static function ga4FieldsFromPresented($p, $qty)
+    {
+        return [
+            'id_product'           => self::ga4Val($p, 'id_product', 0),
+            'id_product_attribute' => self::ga4Val($p, 'id_product_attribute', 0),
+            'name'                 => self::ga4Val($p, 'name', ''),
+            'price'                => self::ga4Val($p, 'price_amount', 0),
+            'regular_price'        => self::ga4Val($p, 'regular_price_amount'),
+            'quantity'             => $qty,
+            'brand'                => self::ga4Val($p, 'manufacturer_name', ''),
+            'id_manufacturer'      => self::ga4Val($p, 'id_manufacturer', 0),
+            'id_category'          => self::ga4Val($p, 'id_category_default', 0),
+            'attributes'           => self::ga4Val($p, 'attributes'),
+        ];
+    }
+
+    /** Category name in the given language (cached per request). */
+    private function ga4CategoryName($idCategory, $idLang)
+    {
+        if ($idCategory <= 0) {
+            return '';
+        }
+        if (!isset($this->ga4Cache['category'][$idCategory])) {
+            $category = new Category($idCategory, (int) $idLang);
+            $this->ga4Cache['category'][$idCategory] = Validate::isLoadedObject($category) ? trim((string) $category->name) : '';
+        }
+
+        return $this->ga4Cache['category'][$idCategory];
+    }
+
+    /**
+     * Combination label "Group: Value, Group: Value". Uses the presented
+     * attributes when available ({ idGroup: { group, name } } or
+     * { Group: 'Value' }), otherwise Product::getAttributesParams(). The
+     * customer-facing group name (public_group) wins over the internal one.
+     */
+    private function ga4Variant($idProduct, $idAttr, $attributes = null)
+    {
+        $parts = [];
+        if (is_array($attributes) || $attributes instanceof Traversable) {
+            foreach ($attributes as $key => $value) {
+                if (is_array($value)) {
+                    $group = trim((string) (!empty($value['public_group']) ? $value['public_group'] : (isset($value['group']) ? $value['group'] : '')));
+                    $name  = trim((string) (isset($value['name']) ? $value['name'] : ''));
+                    if ($group !== '' && $name !== '') {
+                        $parts[] = $group . ': ' . $name;
+                    }
+                } elseif (is_scalar($value) && trim((string) $value) !== '' && !is_int($key) && trim((string) $key) !== '') {
+                    $parts[] = trim((string) $key) . ': ' . trim((string) $value);
+                }
+            }
+        }
+        if ($parts) {
+            return implode(', ', $parts);
+        }
+        if ($idAttr <= 0 || $idProduct <= 0) {
+            return '';
+        }
+
+        $cacheKey = $idProduct . '_' . $idAttr;
+        if (!isset($this->ga4Cache['variant'][$cacheKey])) {
+            $label = [];
+            foreach ((array) Product::getAttributesParams($idProduct, $idAttr) as $row) {
+                $group = trim((string) (!empty($row['public_group']) ? $row['public_group'] : (isset($row['group']) ? $row['group'] : '')));
+                $name  = trim((string) (isset($row['name']) ? $row['name'] : ''));
+                if ($group !== '' && $name !== '') {
+                    $label[] = $group . ': ' . $name;
+                }
+            }
+            $this->ga4Cache['variant'][$cacheKey] = implode(', ', $label);
+        }
+
+        return $this->ga4Cache['variant'][$cacheKey];
+    }
+
+    /**
+     * Build the window.SCM_EC payload for the current page: shop currency,
+     * the product-page view_item, the listing-page item list, checkout data
+     * (coupon, completed shipping step), a pending account event and the
+     * search term. Cart/add/remove events are derived client-side in
+     * scm_ecommerce.js from the live `prestashop.cart`.
      */
     private function buildEcommercePageData()
     {
@@ -1209,40 +1380,224 @@ class Scm_Cookieconsent extends Module
         if (isset($this->context->currency) && Validate::isLoadedObject($this->context->currency)) {
             $iso = $this->context->currency->iso_code;
         }
+        $idLang = (int) $this->context->language->id;
 
-        $data = ['currency' => $iso, 'pageEvent' => null];
+        $data = [
+            'currency'  => $iso,
+            'pageEvent' => null,
+            'list'      => null,
+            'coupon'    => '',
+            'shipping'  => null,
+            'userEvent' => $this->takePendingUserEvent(),
+            'search'    => '',
+        ];
 
         $controller = $this->context->controller;
-        $pageName   = isset($controller->php_self) ? $controller->php_self : '';
+        $pageName   = isset($controller->php_self) ? (string) $controller->php_self : '';
 
         if ($pageName === 'product') {
             $product = $this->context->smarty->getTemplateVars('product');
             if (!empty($product)) {
-                $price = isset($product['price_amount']) ? (float) $product['price_amount'] : 0.0;
-                $item  = [
-                    'item_id'   => (string) (isset($product['id_product']) ? $product['id_product'] : ''),
-                    'item_name' => (string) (isset($product['name']) ? $product['name'] : ''),
-                    'price'     => $price,
-                    'quantity'  => 1,
-                ];
-                if (!empty($product['manufacturer_name'])) { $item['item_brand'] = (string) $product['manufacturer_name']; }
-                if (!empty($product['category_name']))     { $item['item_category'] = (string) $product['category_name']; }
-                elseif (!empty($product['category']))       { $item['item_category'] = (string) $product['category']; }
-                if (!empty($product['reference']))          { $item['item_variant'] = (string) $product['reference']; }
-
+                $item = $this->buildGa4Item(self::ga4FieldsFromPresented($product, 1), $idLang);
                 $data['pageEvent'] = [
-                    'name'      => 'view_item',
-                    'ecommerce' => ['currency' => $iso, 'value' => $price, 'items' => [$item]],
+                    'name'               => 'view_item',
+                    'idProductAttribute' => (int) self::ga4Val($product, 'id_product_attribute', 0),
+                    'ecommerce'          => ['currency' => $iso, 'value' => $item['price'], 'items' => [$item]],
                 ];
             }
+        } elseif (in_array($pageName, self::$GA4_LIST_PAGES, true)) {
+            $data['list'] = $this->buildGa4List($pageName, $idLang);
+            if ($pageName === 'search') {
+                $data['search'] = $this->getGa4SearchTerm();
+            }
+        } elseif ($pageName === 'order' || $pageName === 'checkout') {
+            $data['coupon']   = $this->getCartCouponString();
+            $data['shipping'] = $this->getCompletedShipping($idLang);
         }
 
         return $data;
     }
 
+    /** view_item_list payload from the controller's `listing` Smarty variable. */
+    private function buildGa4List($pageName, $idLang)
+    {
+        $listing  = $this->context->smarty->getTemplateVars('listing');
+        $products = self::ga4Val($listing, 'products');
+        if (empty($products)) {
+            return null;
+        }
+
+        $id   = str_replace('-', '_', $pageName);
+        $name = trim((string) self::ga4Val($listing, 'label', ''));
+
+        // Category / brand / supplier lists: id suffix + entity name as the list name.
+        if (in_array($pageName, ['category', 'manufacturer', 'supplier'], true)) {
+            $entity = $this->context->smarty->getTemplateVars($pageName);
+            $entityId = (int) self::ga4Val($entity, 'id', 0);
+            if ($entityId > 0) {
+                $id .= '_' . $entityId;
+            }
+            $entityName = trim((string) self::ga4Val($entity, 'name', ''));
+            if ($entityName !== '') {
+                $name = $entityName;
+            }
+        }
+
+        $items = [];
+        $index = 0;
+        foreach ($products as $p) {
+            $item = $this->buildGa4Item(self::ga4FieldsFromPresented($p, 1), $idLang);
+            $item['index']          = ++$index;
+            $item['item_list_id']   = $id;
+            $item['item_list_name'] = $name;
+            $items[] = $item;
+        }
+
+        return ['id' => $id, 'name' => $name, 'items' => $items];
+    }
+
+    /** Search query as typed: trimmed, at most 100 characters. */
+    private function getGa4SearchTerm()
+    {
+        $q = Tools::getValue('s', Tools::getValue('search_query', ''));
+        if (!is_string($q)) {
+            return '';
+        }
+
+        return Tools::substr(trim($q), 0, 100);
+    }
+
+    /** Applied voucher codes (fallback: voucher names), comma-separated. */
+    private function getCartCouponString()
+    {
+        $cart = $this->context->cart;
+        if (!Validate::isLoadedObject($cart)) {
+            return '';
+        }
+        $codes = [];
+        foreach ((array) $cart->getCartRules() as $rule) {
+            $code = trim((string) (!empty($rule['code']) ? $rule['code'] : (isset($rule['name']) ? $rule['name'] : '')));
+            if ($code !== '') {
+                $codes[] = $code;
+            }
+        }
+
+        return implode(',', array_unique($codes));
+    }
+
+    /**
+     * add_shipping_info data once the core checkout marked the delivery step
+     * complete. Read from the cart's persisted checkout session (written
+     * before the page renders), so no theme markup is involved. Step keys are
+     * derived from class names at runtime — match any "delivery" step.
+     */
+    private function getCompletedShipping($idLang)
+    {
+        $cart = $this->context->cart;
+        if (!Validate::isLoadedObject($cart) || !(int) $cart->id_carrier) {
+            return null;
+        }
+
+        $raw = Db::getInstance()->getValue(
+            'SELECT `checkout_session_data` FROM `' . _DB_PREFIX_ . 'cart` WHERE `id_cart` = ' . (int) $cart->id
+        );
+        $session = $raw ? json_decode($raw, true) : null;
+        if (!is_array($session)) {
+            return null;
+        }
+
+        $complete = false;
+        foreach ($session as $key => $step) {
+            if (is_array($step) && strpos((string) $key, 'delivery') !== false && !empty($step['step_is_complete'])) {
+                $complete = true;
+                break;
+            }
+        }
+        if (!$complete) {
+            return null;
+        }
+
+        $carrier = new Carrier((int) $cart->id_carrier, (int) $idLang);
+        if (!Validate::isLoadedObject($carrier)) {
+            return null;
+        }
+        // PrestaShop stores "0" as the carrier name of the shop's own pickup carrier.
+        $tier = trim((string) $carrier->name);
+        if ($tier === '' || $tier === '0') {
+            $tier = (string) Configuration::get('PS_SHOP_NAME');
+        }
+
+        return ['tier' => $tier, 'key' => (int) $cart->id . '_' . (int) $carrier->id];
+    }
+
+    /* ============================================================== */
+    /*  GA4 account events — login / sign_up (no personal data)        */
+    /* ============================================================== */
+
+    /**
+     * The login/registration request redirects, so the event is handed to the
+     * next rendered storefront page through the PrestaShop context cookie.
+     * Only the event name is stored — never customer data.
+     */
+    private function setPendingUserEvent($name)
+    {
+        $cookie = $this->context->cookie;
+        if (!$cookie) {
+            return;
+        }
+        $key = self::GA4_PENDING_COOKIE;
+        $cookie->$key = $name;
+        if (!headers_sent()) {
+            $cookie->write();
+        }
+    }
+
+    /** Take (and clear) the pending account event for this page. */
+    private function takePendingUserEvent()
+    {
+        $cookie = $this->context->cookie;
+        $key    = self::GA4_PENDING_COOKIE;
+        if (!$cookie || !isset($cookie->$key)) {
+            return null;
+        }
+        $name = (string) $cookie->$key;
+        unset($cookie->$key);
+        // Footer hooks render before output is flushed, so headers are still
+        // writable; scm_ecommerce.js also de-dupes on the random id.
+        if (!headers_sent()) {
+            $cookie->write();
+        }
+        if ($name !== 'login' && $name !== 'sign_up') {
+            return null;
+        }
+
+        return ['name' => $name, 'method' => 'PrestaShop', 'id' => bin2hex(random_bytes(6))];
+    }
+
+    /** Customer account created (registration, or password set at checkout). */
+    public function hookActionCustomerAccountAdd($params)
+    {
+        $customer = isset($params['newCustomer']) ? $params['newCustomer'] : null;
+        if (!$customer || !Validate::isLoadedObject($customer) || (int) $customer->is_guest) {
+            return;
+        }
+        // sign_up wins over a login reported in the same request.
+        $this->setPendingUserEvent('sign_up');
+    }
+
+    /** Successful customer login. */
+    public function hookActionAuthentication($params)
+    {
+        $key = self::GA4_PENDING_COOKIE;
+        if (isset($this->context->cookie->$key) && (string) $this->context->cookie->$key === 'sign_up') {
+            return;
+        }
+        $this->setPendingUserEvent('login');
+    }
+
     /**
      * GA4 purchase — emitted with real order data (only reliable source for
-     * transaction_id / value / tax / shipping / items).
+     * transaction_id / value / tax / shipping / coupon / items).
      */
     public function hookDisplayOrderConfirmation($params)
     {
@@ -1257,18 +1612,45 @@ class Scm_Cookieconsent extends Module
         }
 
         $currency = new Currency((int) $order->id_currency);
+        $idLang   = (int) $this->context->language->id;
 
         $items = [];
         foreach ((array) $order->getProducts() as $p) {
-            $item = [
-                'item_id'   => (string) (isset($p['product_id']) ? $p['product_id'] : (isset($p['id_product']) ? $p['id_product'] : '')),
-                'item_name' => (string) (isset($p['product_name']) ? $p['product_name'] : ''),
-                'quantity'  => (int) (isset($p['product_quantity']) ? $p['product_quantity'] : 1),
-            ];
-            if (isset($p['unit_price_tax_incl'])) { $item['price'] = (float) $p['unit_price_tax_incl']; }
-            elseif (isset($p['product_price_wt'])) { $item['price'] = (float) $p['product_price_wt']; }
-            elseif (isset($p['product_price'])) { $item['price'] = (float) $p['product_price']; }
-            $items[] = $item;
+            $idProduct = (int) (isset($p['product_id']) ? $p['product_id'] : (isset($p['id_product']) ? $p['id_product'] : 0));
+
+            if (isset($p['unit_price_tax_incl'])) { $price = (float) $p['unit_price_tax_incl']; }
+            elseif (isset($p['product_price_wt'])) { $price = (float) $p['product_price_wt']; }
+            elseif (isset($p['product_price'])) { $price = (float) $p['product_price']; }
+            else { $price = 0.0; }
+
+            // Price before the catalog reduction, when the order line had one.
+            $regular = null;
+            if (!empty($p['reduction_amount_tax_incl']) && (float) $p['reduction_amount_tax_incl'] > 0) {
+                $regular = $price + (float) $p['reduction_amount_tax_incl'];
+            } elseif (!empty($p['reduction_percent']) && (float) $p['reduction_percent'] > 0 && (float) $p['reduction_percent'] < 100) {
+                $regular = $price / (1 - (float) $p['reduction_percent'] / 100);
+            }
+
+            // order_detail.product_name already contains the variant text —
+            // report the base product name like every other event does.
+            if (!isset($this->ga4Cache['name'][$idProduct])) {
+                $base = $idProduct > 0 ? Product::getProductName($idProduct, null, $idLang) : '';
+                $this->ga4Cache['name'][$idProduct] = $base ? (string) $base : '';
+            }
+            $name = $this->ga4Cache['name'][$idProduct] !== ''
+                ? $this->ga4Cache['name'][$idProduct]
+                : (string) (isset($p['product_name']) ? $p['product_name'] : '');
+
+            $items[] = $this->buildGa4Item([
+                'id_product'           => $idProduct,
+                'id_product_attribute' => (int) (isset($p['product_attribute_id']) ? $p['product_attribute_id'] : 0),
+                'name'                 => $name,
+                'price'                => $price,
+                'regular_price'        => $regular,
+                'quantity'             => (int) (isset($p['product_quantity']) ? $p['product_quantity'] : 1),
+                'id_manufacturer'      => isset($p['id_manufacturer']) ? (int) $p['id_manufacturer'] : 0,
+                'id_category'          => isset($p['id_category_default']) ? (int) $p['id_category_default'] : 0,
+            ], $idLang);
         }
 
         $totalPaid = (float) $order->total_paid_tax_incl;
@@ -1278,11 +1660,38 @@ class Scm_Cookieconsent extends Module
             'tax'            => round($totalPaid - (float) $order->total_paid_tax_excl, 2),
             'shipping'       => (float) $order->total_shipping_tax_incl,
             'currency'       => $currency->iso_code,
-            'items'          => $items,
         ];
+        $coupon = $this->getOrderCouponString($order);
+        if ($coupon !== '') {
+            $purchase['coupon'] = $coupon;
+        }
+        $purchase['items'] = $items;
 
-        $this->context->smarty->assign('scm_purchase', json_encode($purchase));
+        $this->context->smarty->assign('scm_purchase', $this->jsonForScript($purchase));
 
         return $this->display(__FILE__, 'views/templates/hook/ecommerce_purchase.tpl');
+    }
+
+    /** Voucher codes used by the order (fallback: the name stored on the order). */
+    private function getOrderCouponString(Order $order)
+    {
+        $codes = [];
+        foreach ((array) $order->getCartRules() as $row) {
+            $code = '';
+            if (!empty($row['id_cart_rule'])) {
+                $rule = new CartRule((int) $row['id_cart_rule']);
+                if (Validate::isLoadedObject($rule)) {
+                    $code = trim((string) $rule->code);
+                }
+            }
+            if ($code === '' && isset($row['name'])) {
+                $code = trim((string) $row['name']);
+            }
+            if ($code !== '') {
+                $codes[] = $code;
+            }
+        }
+
+        return implode(',', array_unique($codes));
     }
 }

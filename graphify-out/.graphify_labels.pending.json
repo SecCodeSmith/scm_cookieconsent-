@@ -1,15 +1,17 @@
 {
   "0": "Scm_Cookieconsent",
-  "1": "Tasks: implementation checklist",
+  "1": ".buildEcommercePageData",
   "2": "scm_cookieconsent.js",
   "3": "openspec-apply-change skill",
   "4": "scm_cookieconsent.min.js",
   "5": "scm_ecommerce.js",
-  "6": "scm_cookieconsent PrestaShop module",
-  "7": "gcm_bootstrap.src.js head bootstrap (SCM_GCM)",
+  "6": "gcm_bootstrap.src.js head bootstrap (SCM_GCM)",
+  "7": "ADDED Requirements",
   "8": "Polish cookie consent modal screenshot (banner-modal-pl.png)",
   "9": "Project logo (glowing hammer over Matrix-style binary rain)",
   "10": "cookie-bite.svg",
   "11": "gcm_bootstrap.src.js",
-  "12": "upgrade-1.7.0.php"
+  "12": "upgrade-1.7.0.php",
+  "13": "ADDED Requirements",
+  "14": "upgrade-1.8.0.php"
 }

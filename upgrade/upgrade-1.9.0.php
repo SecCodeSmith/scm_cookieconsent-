@@ -7,7 +7,9 @@
  * most 365 days. This upgrade:
  *  - reduces a stored consent lifetime above 365 days to 365 (the admin form now
  *    refuses anything longer), and
- *  - seeds the new SCM_COOKIE_SHOW_FOOTER_LINK key (default 1) when it is missing.
+ *  - seeds the new SCM_COOKIE_SHOW_FOOTER_LINK key (default 1) when it is missing, and
+ *  - seeds the four texts of the two-screen banner (settings button, back button, settings title and
+ *    intro) in every shop language when they are missing. Existing texts are left as they are.
  * No table or hook is touched.
  *
  * @author    SCM Jakub Berechowski (SecCodeSmith) <admin@seccodesmith.pl>
@@ -28,6 +30,20 @@ function upgrade_module_1_9_0($module)
 
     if (!Configuration::hasKey('SCM_COOKIE_SHOW_FOOTER_LINK')) {
         Configuration::updateValue('SCM_COOKIE_SHOW_FOOTER_LINK', 1, true);
+    }
+
+    // Texts of the two-screen banner: only the ones that do not exist yet, in every shop language.
+    foreach (['BTN_SETTINGS', 'BTN_BACK', 'SETTINGS_TITLE', 'SETTINGS_INTRO'] as $textKey) {
+        $name = 'SCM_COOKIE_TXT_' . $textKey;
+        if (Configuration::hasKey($name)) {
+            continue;
+        }
+        $values = [];
+        foreach (Language::getLanguages(false) as $lang) {
+            $defaults = Scm_Cookieconsent::getDefaultTexts($lang['iso_code']);
+            $values[(int) $lang['id_lang']] = $defaults[$textKey];
+        }
+        Configuration::updateValue($name, $values, true);
     }
 
     return true;

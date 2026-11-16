@@ -2,7 +2,7 @@
 
 ## Purpose
 
-Defines what the visitor sees and can do about consent: the first layer of the banner, the way to change the choice later, and how long a choice is kept. Optional categories start switched off and closing the banner never counts as consent.
+Defines what the visitor sees and can do about consent: the two-screen banner (a short first screen and a settings screen), the way to change the choice later, and how long a choice is kept. Optional categories start switched off and closing the banner never counts as consent.
 
 ## ADDED Requirements
 
@@ -14,15 +14,59 @@ The banner SHALL show every optional category switched off until the visitor tur
 - **THEN** every optional toggle is off and the necessary category is shown as always active
 
 ### Requirement: Rejecting is as easy as accepting
-The first layer of the banner SHALL offer "Odrzuć opcjonalne" and "Akceptuję wszystkie" as buttons of equal size and equal visual weight (same fill style, border, font size, weight and shadow), and neither SHALL be styled as the main action. A third button that saves the toggles ("Zapisz wybór") SHALL NOT be more prominent than either.
+The first screen SHALL show exactly three buttons, "Akceptuję wszystkie", "Ustawienia cookies" and "Odrzuć opcjonalne", and no category switches. "Odrzuć opcjonalne" and "Akceptuję wszystkie" SHALL have the same size, font and border; "Akceptuję wszystkie" MAY be the filled main action while the other two are outlined. All three buttons SHALL be visible without scrolling at 390 by 844 and at 1366 by 768. "Zapisz wybór" lives on the settings screen only.
 
-#### Scenario: Banner on a phone
+#### Scenario: First screen on a phone
 - **WHEN** the banner is shown at a viewport of 390 by 844
-- **THEN** both buttons are visible without scrolling inside the banner, have the same width and height, and have the same computed background, border, font size, weight and shadow
+- **THEN** exactly three buttons are visible, stacked in the order Akceptuję wszystkie, Ustawienia cookies, Odrzuć opcjonalne, all inside the viewport, and accept and reject have the same width and height
 
-#### Scenario: Banner on a desktop
+#### Scenario: Rejecting
+- **WHEN** a visitor clicks "Odrzuć opcjonalne" on the first screen
+- **THEN** the choice is stored with every optional category off and no analytics or advertising request is made
+
+### Requirement: The first-screen buttons follow the viewport
+Under 768 px the first-screen buttons SHALL be stacked at full width as Akceptuję wszystkie, Ustawienia cookies, Odrzuć opcjonalne. From 768 px they SHALL stand in one right-aligned row as Ustawienia cookies, Odrzuć opcjonalne, Akceptuję wszystkie, in a card docked to the bottom centre. The Tab order SHALL equal the order on screen in both layouts.
+
+#### Scenario: First screen on a desktop
 - **WHEN** the banner is shown at 1366 by 768
-- **THEN** the same equality holds
+- **THEN** the card is docked to the bottom centre, the three buttons stand in one row in the order Ustawienia cookies, Odrzuć opcjonalne, Akceptuję wszystkie, and accept and reject have the same width and height
+
+#### Scenario: Tab order
+- **WHEN** a visitor presses Tab through the first screen on a desktop
+- **THEN** the buttons receive focus in the order Ustawienia cookies, Odrzuć opcjonalne, Akceptuję wszystkie
+
+### Requirement: The settings screen shows one card per category
+The banner SHALL have a second screen titled "Ustawienia ciasteczek" with a short introduction and one card per category, each with the category name, a switch and a chevron that expands the description (collapsed by default). The necessary category SHALL be on and disabled; optional switches SHALL start off on a first visit. The buttons SHALL be "Wróć", "Zapisz wybór" and "Akceptuję wszystkie" in that order, with "Akceptuję wszystkie" filled and the other two outlined.
+
+#### Scenario: Expand and collapse
+- **WHEN** the visitor clicks a category name or its chevron
+- **THEN** its description is shown and aria-expanded is true; a second click hides it
+
+### Requirement: The settings screen opens from the first screen and from the footer
+The settings screen SHALL open from "Ustawienia cookies", from the footer link and from the reopen button. "Wróć" SHALL appear only when it was opened from the first screen and SHALL return to it without storing anything. Opened from the footer link or the reopen button, it SHALL show the saved state, and saving or Escape SHALL close the banner.
+
+#### Scenario: Opened from the first screen
+- **WHEN** a first-time visitor clicks "Ustawienia cookies"
+- **THEN** the settings screen is shown, every optional switch is off, the necessary one is on and disabled, and "Wróć" is visible
+
+#### Scenario: Wróć
+- **WHEN** the visitor switches one category on and clicks "Wróć"
+- **THEN** the first screen is shown again and no choice is stored
+
+#### Scenario: Opened from the footer link
+- **WHEN** a visitor with a stored choice clicks the footer link
+- **THEN** the settings screen shows the saved switches, "Wróć" is not offered, and "Zapisz wybór" stores the new switches and closes the banner
+
+#### Scenario: Keyboard and screen readers
+- **WHEN** the banner opens or changes screen
+- **THEN** focus moves to the screen's title, the dialog has role dialog, aria-modal true and aria-labelledby pointing to the visible title, Tab stays inside the dialog, and Escape grants nothing (on the first screen it stores a rejection, on a settings screen opened from the first screen it goes back)
+
+### Requirement: The banner is styled from the module's colour settings
+The banner SHALL take its filled-button, switch-on, icon and focus-ring colour from the module's primary colour setting and the necessary-category switch from the accent setting, and SHALL choose a text colour for the filled button with at least 4.5:1 contrast. Focus rings SHALL be visible on every control.
+
+#### Scenario: Shop colour
+- **WHEN** the primary colour is set to #004b87
+- **THEN** the filled button and the switches that are on are that colour and the button text is white
 
 ### Requirement: The banner does not hide the purchase button after the first choice
 After the visitor's first choice the banner SHALL be hidden and SHALL NOT cover the page's main purchase button (add to cart on a product page, order button at checkout). The reopen button, if enabled, SHALL NOT overlap it either.

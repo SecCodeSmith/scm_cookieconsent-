@@ -18,12 +18,17 @@ test.beforeAll(() => {
   // Ads settings on for the whole file: every direct-mode case then also proves what the Ads tag does.
   stack('config', 'ADS_ID', ADS);
   stack('config', 'ADS_CONVERSION_LABEL', 'E2ELABEL');
+  // A navy brand look (primary navy, accent green): module settings Colors.
+  stack('config', 'COLOR_PRIMARY', '#004b87');
+  stack('config', 'COLOR_ACCENT', '#146c43');
 });
 test.afterAll(() => {
   stack('config', 'ADS_ID', '');
   stack('config', 'ADS_CONVERSION_LABEL', '');
   stack('config', 'GTM_ID', '');
   stack('config', 'GA4_ID', '');
+  stack('config', 'COLOR_PRIMARY', '#2fb5d2');
+  stack('config', 'COLOR_ACCENT', '#69b92d');
 });
 
 /* ---------- helpers ---------- */
@@ -39,12 +44,16 @@ const categoryOf = (page, signal) => page.evaluate((s) => {
   return c ? c.id : null;
 }, signal);
 
-/** Make a choice in the open banner: 'all', 'reject' or { analytics, marketing } toggles then "Zapisz". */
+/** Make a choice in the open banner: 'all', 'reject' or { analytics, marketing } (settings screen, toggles, then "Zapisz wybór"). */
 async function choose(page, what) {
   await bannerVisible(page);
   if (what === 'all') { await page.locator('#scm-btn-accept-all').click(); }
   else if (what === 'reject') { await page.locator('#scm-btn-reject-all').click(); }
   else {
+    // The switches live on the settings screen: from the first screen open it, from a reopened banner it is already there.
+    const settingsBtn = page.locator('#scm-btn-settings');
+    if (await settingsBtn.isVisible()) { await settingsBtn.click(); }
+    await page.locator('#scm-screen-settings').waitFor({ state: 'visible' });
     for (const [name, signal] of [['analytics', 'analytics_storage'], ['marketing', 'ad_storage']]) {
       const id = await categoryOf(page, signal);
       const tg = page.locator(`.scm-toggle[data-category-id="${id}"]`);
@@ -123,7 +132,7 @@ for (const mode of MODES) {
       const closers = [
         () => page.locator('#scm-btn-close').click(),
         () => page.keyboard.press('Escape'),
-        () => page.locator('#scm-overlay').click({ position: { x: 5, y: 5 } }),
+        async () => { await page.setViewportSize({ width: 390, height: 844 }); await page.locator('#scm-overlay').click({ position: { x: 5, y: 5 } }); }, // the backdrop dims and blocks on phones only
       ];
       for (const close of closers) {
         await page.context().clearCookies();
@@ -351,46 +360,222 @@ test.describe('6. purchase guard and checkout funnel', () => {
 
 /* ---------- 7. geometry, footer link, retention ---------- */
 
-const STYLE_PROPS = ['backgroundColor', 'borderTopColor', 'borderTopWidth', 'borderTopStyle', 'fontSize', 'fontWeight', 'boxShadow', 'color'];
-
-async function bannerMetrics(page) {
-  return page.evaluate((props) => {
-    const out = {};
-    for (const [k, id] of [['reject', 'scm-btn-reject-all'], ['accept', 'scm-btn-accept-all'], ['save', 'scm-btn-save']]) {
-      const el = document.getElementById(id);
-      const cs = getComputedStyle(el);
-      const r = el.getBoundingClientRect();
-      out[k] = { style: props.map((p) => cs[p]), w: Math.round(r.width), h: Math.round(r.height), top: r.top, bottom: r.bottom };
-    }
-    const b = document.getElementById('scm-cookie-banner');
-    const inner = b.querySelector('.scm-banner-inner');
-    const br = b.getBoundingClientRect();
-    out.box = { top: br.top, bottom: br.bottom };
-    out.vh = window.innerHeight;
-    return out;
-  }, STYLE_PROPS);
+async function boxOf(page, id) {
+  return page.evaluate((i) => {
+    const el = document.getElementById(i);
+    const r = el.getBoundingClientRect();
+    const cs = getComputedStyle(el);
+    return { x: r.left, y: r.top, w: Math.round(r.width), h: Math.round(r.height), top: r.top, bottom: r.bottom, visible: el.offsetParent !== null, bg: cs.backgroundColor, color: cs.color, fontSize: cs.fontSize, fontWeight: cs.fontWeight, border: cs.borderTopWidth };
+  }, id);
 }
+const bannerBox = (page) => page.evaluate(() => {
+  const r = document.getElementById('scm-cookie-banner').getBoundingClientRect();
+  return { top: r.top, bottom: r.bottom, left: r.left, right: r.right, vh: window.innerHeight, vw: window.innerWidth };
+});
+/** Ids of the visible buttons of the dialog (not the close cross), in tab order. */
+const visibleButtons = (page) => page.evaluate(() => Array.prototype.slice.call(document.querySelectorAll('#scm-cookie-banner .scm-btn'))
+  .filter((b) => b.offsetParent !== null).map((b) => b.id));
 
-for (const vp of [{ width: 390, height: 844 }, { width: 1366, height: 768 }]) {
-  test(`7. reject / accept buttons are equal at ${vp.width}x${vp.height}`, async ({ page }) => {
+const FIRST_PHONE = ['scm-btn-accept-all', 'scm-btn-settings', 'scm-btn-reject-all'];
+const FIRST_DESKTOP = ['scm-btn-settings', 'scm-btn-reject-all', 'scm-btn-accept-all'];
+const SECOND = ['scm-btn-back', 'scm-btn-save', 'scm-btn-accept-settings'];
+const PHONE = { width: 390, height: 844 };
+const DESKTOP = { width: 1366, height: 768 };
+
+for (const vp of [PHONE, DESKTOP]) {
+  const isPhone = vp.width < 768;
+  test(`7. first screen: three buttons in order, accept and reject equal, all in view at ${vp.width}x${vp.height}`, async ({ page }) => {
     await page.setViewportSize(vp);
     await page.goto('/');
     await bannerVisible(page);
-    const m = await bannerMetrics(page);
-    expect(m.accept.style, 'same computed style, accept vs reject').toEqual(m.reject.style);
-    expect(m.save.style, 'save is not more prominent').toEqual(m.reject.style);
-    expect(m.accept.w).toBe(m.reject.w);
-    expect(m.accept.h).toBe(m.reject.h);
-    if (vp.width < 600) { expect(m.save.w).toBe(m.reject.w); expect(m.save.h).toBe(m.reject.h); }
-    // all three buttons are in view without scrolling the banner or the page (the banner keeps them pinned)
-    ['reject', 'accept', 'save'].forEach((k) => {
-      expect(m[k].top, `${k} inside the banner`).toBeGreaterThanOrEqual(m.box.top);
-      expect(m[k].bottom, `${k} inside the banner`).toBeLessThanOrEqual(m.box.bottom + 1);
-      expect(m[k].top).toBeGreaterThanOrEqual(0);
-      expect(m[k].bottom, `${k} inside the viewport`).toBeLessThanOrEqual(m.vh);
+    await page.waitForTimeout(700); // the entrance animation (0.3s) must be over before measuring
+    await expect(page.locator('#scm-screen-settings')).toBeHidden();
+    // exactly three buttons, in the order of the screen
+    expect(await visibleButtons(page)).toEqual(isPhone ? FIRST_PHONE : FIRST_DESKTOP);
+    const [a, st, r] = await Promise.all(['scm-btn-accept-all', 'scm-btn-settings', 'scm-btn-reject-all'].map((id) => boxOf(page, id)));
+    expect(a.w, 'accept and reject: same width').toBe(r.w);
+    expect(a.h, 'accept and reject: same height').toBe(r.h);
+    expect(st.h).toBe(r.h);
+    expect(a.h).toBeGreaterThanOrEqual(48);
+    expect(a.fontSize).toBe(r.fontSize);
+    expect(a.fontWeight).toBe(r.fontWeight);
+    expect(a.border).toBe(r.border);
+    expect(a.bg, 'accept is the filled main action').not.toBe(r.bg);
+    expect(st.bg, 'settings is outlined like reject').toBe(r.bg);
+    if (isPhone) {
+      [a, st, r].forEach((b) => expect(b.w, 'full width on a phone').toBeGreaterThan(vp.width - 60));
+      expect(a.y).toBeLessThan(st.y);
+      expect(st.y).toBeLessThan(r.y);
+    } else {
+      // one row, right-aligned: settings | reject | accept
+      expect(Math.abs(st.y - r.y)).toBeLessThan(2);
+      expect(Math.abs(a.y - r.y)).toBeLessThan(2);
+      expect(st.x).toBeLessThan(r.x);
+      expect(r.x).toBeLessThan(a.x);
+    }
+    const box = await bannerBox(page);
+    [a, st, r].forEach((b) => {
+      expect(b.top, 'inside the dialog').toBeGreaterThanOrEqual(box.top);
+      expect(b.bottom, 'inside the dialog').toBeLessThanOrEqual(box.bottom + 1);
+      expect(b.top).toBeGreaterThanOrEqual(0);
+      expect(b.bottom, 'inside the viewport').toBeLessThanOrEqual(vp.height);
     });
+    // docked to the bottom; on a phone full width, on desktop a centred card of at most 848px
+    expect(Math.abs(box.bottom - vp.height)).toBeLessThan(2);
+    if (isPhone) { expect(box.left).toBe(0); expect(box.right).toBe(vp.width); }
+    else {
+      expect(box.right - box.left).toBeLessThanOrEqual(848);
+      expect(Math.abs((box.left + box.right) / 2 - vp.width / 2)).toBeLessThan(2);
+    }
+  });
+
+  test(`7. settings screen at ${vp.width}x${vp.height}: switches off, Wróć, expand, button order`, async ({ page }) => {
+    await page.setViewportSize(vp);
+    await page.goto('/');
+    await bannerVisible(page);
+    await page.locator('#scm-btn-settings').click();
+    await expect(page.locator('#scm-screen-settings')).toBeVisible();
+    await expect(page.locator('#scm-screen-main')).toBeHidden();
+    await expect(page.locator('#scm-cookie-banner')).toHaveAttribute('aria-labelledby', 'scm-settings-title');
+    // first visit: every optional switch is off, the necessary one is on and disabled
+    const sw = page.locator('#scm-screen-settings .scm-toggle[data-category-id]');
+    expect(await sw.count()).toBeGreaterThan(0);
+    for (let i = 0; i < await sw.count(); i++) { await expect(sw.nth(i)).toHaveAttribute('aria-checked', 'false'); }
+    const req = page.locator('#scm-screen-settings .scm-toggle-required .scm-toggle');
+    await expect(req).toHaveAttribute('aria-checked', 'true');
+    await expect(req).toBeDisabled();
+    // buttons: Wróć | Zapisz wybór | Akceptuję wszystkie (same order on phone and desktop)
+    expect(await visibleButtons(page)).toEqual(SECOND);
+    const names = await page.locator('#scm-screen-settings .scm-btn').allTextContents();
+    expect(names.map((x) => x.trim()).length).toBe(3); // labels are editable and per language; order is asserted by id above
+    const [b, sv, ac] = await Promise.all(SECOND.map((id) => boxOf(page, id)));
+    const box = await bannerBox(page);
+    [b, sv, ac].forEach((x) => { expect(x.bottom, 'in view').toBeLessThanOrEqual(vp.height); expect(x.top).toBeGreaterThanOrEqual(box.top); });
+    if (!isPhone) { expect(Math.abs(b.y - ac.y)).toBeLessThan(2); expect(b.x).toBeLessThan(sv.x); expect(sv.x).toBeLessThan(ac.x); }
+    else { expect(b.y).toBeLessThan(sv.y); expect(sv.y).toBeLessThan(ac.y); }
+    expect(sv.bg, 'save is outlined').not.toBe(ac.bg);
+
+    // a card is collapsed by default; the name opens its description and a second click closes it
+    const card = page.locator('#scm-screen-settings .scm-category').nth(1);
+    const head = card.locator('.scm-cat-toggle');
+    const desc = card.locator('.scm-category-desc');
+    await expect(head).toHaveAttribute('aria-expanded', 'false');
+    await expect(desc).toBeHidden();
+    await head.click();
+    await expect(head).toHaveAttribute('aria-expanded', 'true');
+    await expect(desc).toBeVisible();
+    await expect(desc).not.toHaveText('');
+    await card.locator('.scm-chevron-cell').click();
+    await expect(head).toHaveAttribute('aria-expanded', 'false');
+    await expect(desc).toBeHidden();
+
+    // switching one on is visible; Wróć returns to screen 1 and nothing is stored
+    await sw.first().click();
+    await expect(sw.first()).toHaveAttribute('aria-checked', 'true');
+    await page.locator('#scm-btn-back').click();
+    await expect(page.locator('#scm-screen-main')).toBeVisible();
+    await expect(page.locator('#scm-screen-settings')).toBeHidden();
+    expect(await page.evaluate(() => localStorage.getItem('scm_consent'))).toBeNull();
   });
 }
+
+test('7. the visible colour comes from the primary colour setting; accept text is readable on it', async ({ page }) => {
+  await page.goto('/');
+  await bannerVisible(page);
+  const c = await page.evaluate(() => {
+    const root = getComputedStyle(document.documentElement).getPropertyValue('--scm-primary').trim();
+    const a = getComputedStyle(document.getElementById('scm-btn-accept-all'));
+    return { root, bg: a.backgroundColor, color: a.color };
+  });
+  const rgb = (x) => x.match(/\d+/g).slice(0, 3).map(Number);
+  const lum = (v) => { const f = (k) => { k /= 255; return k <= 0.03928 ? k / 12.92 : Math.pow((k + 0.055) / 1.055, 2.4); }; return 0.2126 * f(v[0]) + 0.7152 * f(v[1]) + 0.0722 * f(v[2]); };
+  const l1 = lum(rgb(c.bg)); const l2 = lum(rgb(c.color));
+  const ratio = (Math.max(l1, l2) + 0.05) / (Math.min(l1, l2) + 0.05);
+  expect(ratio, `contrast of accept label on ${c.root}`).toBeGreaterThanOrEqual(4.5);
+});
+
+test('7. keyboard: focus moves into the dialog, Tab follows the screen, Escape grants nothing', async ({ page }) => {
+  await page.setViewportSize(DESKTOP);
+  await page.goto('/');
+  await bannerVisible(page);
+  await expect(page.locator('#scm-cookie-banner')).toHaveAttribute('role', 'dialog');
+  await expect(page.locator('#scm-cookie-banner')).toHaveAttribute('aria-modal', 'true');
+  await expect(page.locator('#scm-cookie-banner')).toHaveAttribute('aria-labelledby', 'scm-banner-title');
+  expect(await page.evaluate(() => document.getElementById('scm-cookie-banner').contains(document.activeElement)), 'focus inside the dialog').toBe(true);
+  const order = [];
+  for (let i = 0; i < 4; i++) {
+    await page.keyboard.press('Tab');
+    order.push(await page.evaluate(() => document.activeElement.id || document.activeElement.className));
+  }
+  // privacy link is not configured in the test shop, so: close, then the three buttons as drawn (settings, reject, accept)
+  const buttonsSeen = order.filter((x) => /^scm-btn-(settings|reject-all|accept-all)$/.test(x));
+  expect(buttonsSeen).toEqual(FIRST_DESKTOP);
+  // Tab never leaves the dialog
+  for (let i = 0; i < 6; i++) { await page.keyboard.press('Tab'); }
+  expect(await page.evaluate(() => document.getElementById('scm-cookie-banner').contains(document.activeElement))).toBe(true);
+  // Escape on the first screen grants nothing
+  await page.keyboard.press('Escape');
+  await page.locator('#scm-cookie-banner').waitFor({ state: 'hidden' });
+  const stored = await page.evaluate(() => JSON.parse(localStorage.getItem('scm_consent')));
+  const optional = await page.evaluate(() => window.SCM_GCM.categories.filter((c) => !c.required).map((c) => c.id));
+  optional.forEach((id) => expect(stored[id]).toBe(false));
+});
+
+test('7. no focus box on the title when the sheet opens; a keyboard Tab shows a ring on the first button', async ({ page }) => {
+  await page.goto('/');
+  await bannerVisible(page);
+  await page.waitForTimeout(700);
+  const title = await page.evaluate(() => {
+    const el = document.activeElement; const cs = getComputedStyle(el);
+    return { id: el.id, style: cs.outlineStyle, width: parseFloat(cs.outlineWidth), shadow: cs.boxShadow };
+  });
+  expect(title.id, 'focus starts on the title').toBe('scm-banner-title');
+  expect(title.style === 'none' || title.width === 0, `title outline: ${title.style} ${title.width}`).toBe(true);
+  expect(title.shadow).toBe('none');
+  await page.keyboard.press('Tab');
+  const ring = await page.evaluate(() => {
+    const el = document.activeElement; const cs = getComputedStyle(el);
+    return { tag: el.tagName, style: cs.outlineStyle, width: parseFloat(cs.outlineWidth) };
+  });
+  expect(ring.tag).toBe('BUTTON');
+  expect(ring.style).not.toBe('none');
+  expect(ring.width).toBeGreaterThanOrEqual(2);
+});
+
+test('7. Zapisz wybór is outlined like Wróć, also after a tap (phone) and on desktop', async ({ page }) => {
+  for (const vp of [PHONE, DESKTOP]) {
+    await page.setViewportSize(vp);
+    await page.goto('/');
+    await bannerVisible(page);
+    await page.locator('#scm-btn-settings').click();
+    await page.mouse.move(1, 1); // a mouse resting on the button would show the hover fill
+    await page.waitForTimeout(500);
+    const bg = (id) => page.evaluate((i) => getComputedStyle(document.getElementById(i)).backgroundColor, id);
+    expect(await bg('scm-btn-save'), `${vp.width}: save fill equals back fill`).toBe(await bg('scm-btn-back'));
+    await page.locator('#scm-btn-save').focus();
+    expect(await bg('scm-btn-save'), `${vp.width}: save keeps the fill when focused`).toBe(await bg('scm-btn-back'));
+    expect(await bg('scm-btn-accept-settings')).not.toBe(await bg('scm-btn-back'));
+    await page.context().clearCookies();
+  }
+});
+
+test('7. Escape on the settings screen opened from screen 1 goes back and stores nothing', async ({ page }) => {
+  await page.goto('/');
+  await bannerVisible(page);
+  await page.locator('#scm-btn-settings').click();
+  await page.keyboard.press('Escape');
+  await expect(page.locator('#scm-screen-main')).toBeVisible();
+  expect(await page.evaluate(() => localStorage.getItem('scm_consent'))).toBeNull();
+});
+
+test('7. no tag request while the sheet is open on either screen', async ({ page, requests }) => {
+  await page.goto(PRODUCT);
+  await bannerVisible(page);
+  await page.locator('#scm-btn-settings').click();
+  await page.locator('#scm-screen-settings .scm-toggle[data-category-id]').first().click();
+  await page.waitForTimeout(800);
+  expect(requests.toHosts(), `tracking requests: ${requests.tracking().join(' ')}`).toEqual([]);
+});
 
 test.describe('7. footer link and retention', () => {
   test.beforeAll(() => { setMode('gtag'); stack('config', 'SHOW_FOOTER_LINK', '1'); });
@@ -411,6 +596,10 @@ test.describe('7. footer link and retention', () => {
       const mId = await categoryOf(page, 'ad_storage');
       await expect(page.locator(`.scm-toggle[data-category-id="${aId}"]`)).toHaveAttribute('aria-checked', 'true');
       await expect(page.locator(`.scm-toggle[data-category-id="${mId}"]`)).toHaveAttribute('aria-checked', 'false');
+      // opened from the footer: the settings screen itself, no first screen to go back to
+      await expect(page.locator('#scm-screen-settings')).toBeVisible();
+      await expect(page.locator('#scm-btn-back')).toBeHidden();
+      await expect(page.locator('#scm-btn-save')).toBeVisible();
       await page.keyboard.press('Escape'); // existing choice: just dismiss
       await page.locator('#scm-cookie-banner').waitFor({ state: 'hidden' });
     }

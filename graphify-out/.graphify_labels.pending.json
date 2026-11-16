@@ -1,6 +1,6 @@
 {
   "0": "Scm_Cookieconsent",
-  "1": "helpers.js",
+  "1": "06-consent-basic.spec.js",
   "2": "scm_cookieconsent.js",
   "3": "openspec-apply-change skill",
   "4": "scm_cookieconsent.min.js",
@@ -19,5 +19,14 @@
   "17": "package.json",
   "18": "Proposal",
   "19": "stack.sh",
-  "20": "upgrade-1.9.0.php"
+  "20": ".getDefaultTexts",
+  "21": "Proposal: Google Ads conversion tracking",
+  "22": "gcm_bootstrap.harness.js",
+  "23": "README.md (scm_cookieconsent)",
+  "24": "Spec: google-ads-conversion-tracking",
+  "25": "Google Consent Mode v2",
+  "26": "scm_ecommerce.js ecommerce event pushes",
+  "27": "scm_cookieconsent.php",
+  "28": "graphify knowledge graph workflow",
+  "29": "upgrade-1.5.0.php"
 }

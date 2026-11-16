@@ -20,7 +20,7 @@ A professional cookie consent module for PrestaShop **1.7 / 8.x / 9.x** — comp
 | ✅ | Active cookie removal on rejection (wildcard `*` support) |
 | ✅ | Configurable consent lifetime (default and maximum 365 days), JSON `scm_consent` cookie with `SameSite=Lax` |
 | ✅ | Reopen widget + a text link "Zmień ustawienia cookies" in the footer of every page (`SCM_COOKIE_SHOW_FOOTER_LINK`, on by default) |
-| ✅ | "Odrzuć opcjonalne" and "Akceptuję wszystkie" are equal buttons: same size, fill, border, font and shadow |
+| ✅ | Two-screen banner (1.9.0): a short first screen with three buttons ("Akceptuję wszystkie" filled, "Ustawienia cookies" and "Odrzuć opcjonalne" outlined; accept and reject are exactly the same size) and a settings screen with one expandable card and switch per category ("Wróć", "Zapisz wybór", "Akceptuję wszystkie"). Bottom sheet on phones, card docked to the bottom centre from 768 px. Optional switches never start on |
 | ✅ | No pre-checked optional toggles (GDPR art. 4(11) compliant) |
 | ✅ | Editable brand colors (HEX) with live preview |
 | ✅ | Legal footer with GDPR art. 6(1)(a) legal basis, data subject rights and the right to lodge a complaint |
@@ -102,6 +102,10 @@ gtag('consent', 'update',  { analytics_storage: 'granted', ... });              
 ```
 
 **Important:** if you enter IDs in the **Integrations** tab, the module loads the tags itself, and only after a grant — do not add the same tags manually. **GTM is the preferred path**: when a GTM container is configured (your own or from an external marketing module), direct `gtag.js` (GA4/Ads) is NOT loaded — configure GA4/Ads tags inside the GTM container instead. Direct `gtag.js` works only as a fallback when no GTM container exists.
+
+### Banner colours
+
+The banner takes its colours from the **Appearance** tab: the *primary* colour fills the main button, the switches that are on, the icon and the keyboard focus rings; the *accent* colour is the always-on (necessary) switch. The text on the filled button is chosen automatically (white or near black) for at least 4.5:1 contrast. Example, a navy brand: primary `#004b87` and accent `#146c43` (`SCM_COOKIE_COLOR_PRIMARY` and `SCM_COOKIE_COLOR_ACCENT`). Pick a dark primary: a light one cannot give readable outlines and links.
 
 ### What loads when (basic mode, 1.9.0)
 

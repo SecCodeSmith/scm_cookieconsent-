@@ -176,27 +176,82 @@
     /* ===== UI ===== */
 
     var banner, overlay, widget;
+    var currentScreen = 'main';
+    var openedFromMain = false;
 
-    function showBanner() {
+    function screenEl(name) { return document.getElementById('scm-screen-' + name); }
+
+    /**
+     * Phone: the buttons are stacked as Accept, Settings, Reject. Desktop row (card at least 768px
+     * wide, not the narrow corner panel): Settings, Reject, Accept. The DOM is reordered to match,
+     * so the Tab order always follows what is on screen. The layout decision is read from the CSS.
+     */
+    function orderActions() {
+        var actions = screenEl('main') ? screenEl('main').querySelector('.scm-actions') : null;
+        if (!actions) { return; }
+        var row = window.getComputedStyle(actions).flexDirection === 'row';
+        var a = document.getElementById('scm-btn-accept-all');
+        var st = document.getElementById('scm-btn-settings');
+        var r = document.getElementById('scm-btn-reject-all');
+        if (!a || !st || !r) { return; }
+        var want = row ? [st, r, a] : [a, st, r];
+        for (var i = 0; i < want.length; i++) { actions.appendChild(want[i]); }
+    }
+
+    /** Show one screen: swap the visible block, move the dialog's label, hide Back when there is no screen 1 to go back to. */
+    function setScreen(name, focusTitle) {
+        currentScreen = name;
+        var screens = banner.querySelectorAll('.scm-screen');
+        for (var i = 0; i < screens.length; i++) {
+            var on = screens[i].getAttribute('data-screen') === name;
+            screens[i].hidden = !on;
+            if (on) { screens[i].removeAttribute('hidden'); } else { screens[i].setAttribute('hidden', ''); }
+        }
+        banner.setAttribute('aria-labelledby', name === 'settings' ? 'scm-settings-title' : 'scm-banner-title');
+        banner.setAttribute('aria-describedby', name === 'settings' ? 'scm-settings-desc' : 'scm-banner-desc');
+        var back = document.getElementById('scm-btn-back');
+        if (back) {
+            back.hidden = !openedFromMain;
+            if (openedFromMain) { back.removeAttribute('hidden'); } else { back.setAttribute('hidden', ''); }
+            back.style.display = openedFromMain ? '' : 'none';
+        }
+        orderActions();
+        banner.scrollTop = 0;
+        if (focusTitle) {
+            var t = document.getElementById(name === 'settings' ? 'scm-settings-title' : 'scm-banner-title');
+            if (t) { try { t.focus(); } catch (e) {} }
+        }
+    }
+
+    /**
+     * Show the banner. First visit (no usable stored choice): screen 1. Reopened with a stored
+     * choice (footer link, round button, SCM_Consent.reopen): the settings screen, so the saved
+     * state is visible and "Wróć" is not offered (there is no first screen to go back to).
+     */
+    function showBanner(screen) {
         if (!banner) { return; }
 
         // Always re-read stored consent from cookie before showing — handles
         // reload, cross-tab edits, and DevTools tampering.
         var fresh = readConsentStore();
-        if (fresh && isStoreComplete(fresh)) {
+        var hasChoice = !!(fresh && isStoreComplete(fresh));
+        if (hasChoice) {
             applyToggleState(fresh);
         } else {
-            // No stored consent → reset all optional toggles to OFF
+            // No stored consent → reset all optional toggles to OFF (never pre-ticked)
             setAllOptional(false);
         }
+
+        var name = screen || (hasChoice ? 'settings' : 'main');
+        openedFromMain = (name === 'settings' && screen === 'settings' && !hasChoice);
+        collapseAll();
 
         banner.hidden = false;
         banner.removeAttribute('hidden');
         banner.classList.add('scm-banner-visible');
+        setScreen(name, true);
 
-        // The banner is marked role="dialog" aria-modal="true" in every
-        // position (bottom bar, center, bottom-left) — the dimmed backdrop
-        // should back that up in every position too, not just "center".
+        // The dimmed backdrop (phones) backs up aria-modal; on desktop CSS makes it invisible.
         if (overlay) {
             overlay.hidden = false;
             overlay.removeAttribute('hidden');
@@ -207,9 +262,6 @@
             widget.hidden = true;
             widget.setAttribute('hidden', '');
         }
-
-        var first = banner.querySelector('button:not([disabled]), a[href]');
-        if (first) { try { first.focus(); } catch (e) {} }
     }
 
     function hideBanner() {
@@ -223,6 +275,22 @@
             overlay.setAttribute('aria-hidden', 'true');
         }
         document.body.classList.remove('scm-modal-open');
+    }
+
+    /** Card descriptions are collapsed by default and whenever the banner opens. */
+    function collapseAll() {
+        var cards = banner.querySelectorAll('.scm-category');
+        for (var i = 0; i < cards.length; i++) { setExpanded(cards[i], false); }
+    }
+
+    function setExpanded(card, open) {
+        var btn  = card.querySelector('.scm-cat-toggle[aria-expanded]');
+        var desc = card.querySelector('.scm-category-desc');
+        if (!btn || !desc) { return; }
+        btn.setAttribute('aria-expanded', open ? 'true' : 'false');
+        desc.hidden = !open;
+        if (open) { desc.removeAttribute('hidden'); } else { desc.setAttribute('hidden', ''); }
+        if (open) { card.classList.add('scm-expanded'); } else { card.classList.remove('scm-expanded'); }
     }
 
     function showWidget() {
@@ -292,6 +360,11 @@
      *    a banner without a choice cannot be treated as consent;
      *  - editing an existing decision → just dismiss, the saved choice stays.
      */
+    function goBack() {
+        openedFromMain = false;
+        setScreen('main', true);
+    }
+
     function dismissBanner() {
         var stored = readConsentStore();
         if (stored && isStoreComplete(stored)) {
@@ -308,16 +381,21 @@
 
     function trapFocus(e) {
         if (e.key !== 'Tab' || !banner || banner.hidden) { return; }
-        var focusable = banner.querySelectorAll(
+        var all = banner.querySelectorAll(
             'button:not([disabled]):not([tabindex="-1"]), a[href], input, select, textarea'
         );
+        var focusable = [];
+        for (var i = 0; i < all.length; i++) {
+            if (all[i].offsetParent !== null) { focusable.push(all[i]); }
+        }
         if (!focusable.length) { return; }
         var first = focusable[0];
         var last  = focusable[focusable.length - 1];
+        var active = document.activeElement;
 
-        if (e.shiftKey && document.activeElement === first) {
+        if (e.shiftKey && (active === first || active === banner || active.tabIndex === -1)) {
             e.preventDefault(); last.focus();
-        } else if (!e.shiftKey && document.activeElement === last) {
+        } else if (!e.shiftKey && active === last) {
             e.preventDefault(); first.focus();
         }
     }
@@ -352,9 +430,10 @@
     }
 
     window.SCM_Consent = {
-        version: '1.3.1',
+        version: '1.9.0',
         status:  getStatus,
         reopen:  function () { showBanner(); },
+        screen:  function () { return banner && !banner.hidden ? currentScreen : null; },
         reset:   function () {
             deleteCookie('scm_consent');
             lsRemove();
@@ -421,13 +500,14 @@
             });
         });
 
-        var btnAccept = document.getElementById('scm-btn-accept-all');
-        if (btnAccept) {
-            btnAccept.addEventListener('click', function () {
-                setAllOptional(true);
-                finalizeConsent(getToggleState());
-            });
+        function acceptAll() {
+            setAllOptional(true);
+            finalizeConsent(getToggleState());
         }
+        ['scm-btn-accept-all', 'scm-btn-accept-settings'].forEach(function (id) {
+            var b = document.getElementById(id);
+            if (b) { b.addEventListener('click', acceptAll); }
+        });
 
         var btnReject = document.getElementById('scm-btn-reject-all');
         if (btnReject) {
@@ -437,11 +517,40 @@
             });
         }
 
+        var btnSettings = document.getElementById('scm-btn-settings');
+        if (btnSettings) {
+            btnSettings.addEventListener('click', function () {
+                openedFromMain = true;
+                setScreen('settings', true);
+            });
+        }
+
+        var btnBack = document.getElementById('scm-btn-back');
+        if (btnBack) { btnBack.addEventListener('click', goBack); }
+
         var btnSave = document.getElementById('scm-btn-save');
         if (btnSave) {
             btnSave.addEventListener('click', function () {
                 finalizeConsent(getToggleState());
             });
+        }
+
+        // Card: the name button expands the description; a click on the chevron cell does the same.
+        document.querySelectorAll('.scm-category-header').forEach(function (head) {
+            head.addEventListener('click', function (e) {
+                var card = head.parentNode;
+                if (!card.querySelector('.scm-category-desc')) { return; }
+                var t = e.target;
+                while (t && t !== head) {
+                    if (t.className && /scm-toggle-wrap/.test(t.className)) { return; }
+                    t = t.parentNode;
+                }
+                setExpanded(card, !card.classList.contains('scm-expanded'));
+            });
+        });
+
+        if (window.addEventListener) {
+            window.addEventListener('resize', function () { if (banner && !banner.hidden) { orderActions(); } });
         }
 
         var btnClose = document.getElementById('scm-btn-close');
@@ -454,7 +563,7 @@
         }
 
         if (widget) {
-            widget.addEventListener('click', showBanner);
+            widget.addEventListener('click', function () { showBanner(); });
         }
 
         document.querySelectorAll('.scm-reopen-link').forEach(function (link) {
@@ -467,7 +576,7 @@
         document.addEventListener('keydown', function (e) {
             if (banner && !banner.hidden) {
                 if (e.key === 'Escape') {
-                    dismissBanner();
+                    if (currentScreen === 'settings' && openedFromMain) { goBack(); } else { dismissBanner(); }
                 } else {
                     trapFocus(e);
                 }

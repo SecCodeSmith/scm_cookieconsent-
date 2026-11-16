@@ -197,6 +197,16 @@
                 <label class="control-label col-lg-3">{l s='Tekst wprowadzający' mod='scm_cookieconsent'}</label>
                 <div class="col-lg-9">{scm_ml_input key='INTRO' rows=3}</div>
             </div>
+
+            <div class="form-group">
+                <label class="control-label col-lg-3">{l s='Tytuł ekranu ustawień' mod='scm_cookieconsent'}</label>
+                <div class="col-lg-9">{scm_ml_input key='SETTINGS_TITLE'}</div>
+            </div>
+
+            <div class="form-group">
+                <label class="control-label col-lg-3">{l s='Wprowadzenie na ekranie ustawień' mod='scm_cookieconsent'}</label>
+                <div class="col-lg-9">{scm_ml_input key='SETTINGS_INTRO' rows=3}</div>
+            </div>
         </fieldset>
 
         <fieldset class="scm-fieldset">
@@ -213,6 +223,14 @@
             <div class="form-group">
                 <label class="control-label col-lg-3">{l s='Zapisz wybór' mod='scm_cookieconsent'}</label>
                 <div class="col-lg-9">{scm_ml_input key='BTN_SAVE'}</div>
+            </div>
+            <div class="form-group">
+                <label class="control-label col-lg-3">{l s='Ustawienia cookies (przycisk na pierwszym ekranie)' mod='scm_cookieconsent'}</label>
+                <div class="col-lg-9">{scm_ml_input key='BTN_SETTINGS'}</div>
+            </div>
+            <div class="form-group">
+                <label class="control-label col-lg-3">{l s='Wróć (przycisk na ekranie ustawień)' mod='scm_cookieconsent'}</label>
+                <div class="col-lg-9">{scm_ml_input key='BTN_BACK'}</div>
             </div>
             <div class="form-group">
                 <label class="control-label col-lg-3">{l s='Zamknij (etykieta dostępności)' mod='scm_cookieconsent'}</label>

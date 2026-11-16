@@ -17,9 +17,15 @@
  *   login / sign_up   — page after a successful login / account creation (SCM_EC.userEvent)
  *   search            — search results page (SCM_EC.search)
  *
- * Consent: pushes are made unconditionally. Whether GA4 actually SENDS the hit
- * is governed by Google Consent Mode v2 (the head bootstrap) inside the tag —
- * a dataLayer push is not itself a network beacon. No personal data is pushed.
+ * Consent (Consent Mode "basic"): nothing here reaches the dataLayer on its own.
+ * Every event goes through window.SCM_GCM, which keeps it in page memory until the
+ * visitor has granted a category that starts a tag (then it is delivered once, in
+ * order) and drops it on a reject or when the page is left. The tag itself is not
+ * requested before that grant. Only when the bootstrap is missing are the dataLayer
+ * pairs pushed directly: no bootstrap also means no tag loader, so nothing is
+ * requested. No personal data is pushed.
+ * Once-guards (scm_ship_*, scm_uevt_*, scm_begin_*) are passed to the bootstrap and
+ * recorded at DELIVERY, not when the event is queued.
  *
  * Routing: ecommerce events go through window.SCM_GCM.track(), non-ecommerce
  * events (login, sign_up, search) through window.SCM_GCM.event() — the head
@@ -44,28 +50,32 @@
     function hasOwn(o, k) { return Object.prototype.hasOwnProperty.call(o, k); }
 
     // Ecommerce event — GTM object pair or direct gtag (decided by the bootstrap).
-    function pushEvent(name, ecommerce) {
+    // Optional guardKey: the bootstrap checks and records it when it delivers the event.
+    function pushEvent(name, ecommerce, guardKey) {
         if (window.SCM_GCM && typeof window.SCM_GCM.track === 'function') {
-            window.SCM_GCM.track(name, ecommerce);
+            window.SCM_GCM.track(name, ecommerce, guardKey);
             return;
         }
+        if (guardKey && !once(guardKey)) { return; }
         var d = dl();
         d.push({ ecommerce: null });
         d.push({ event: name, ecommerce: ecommerce });
     }
 
     // Non-ecommerce event — flat keys in the dataLayer, no ecommerce wrapper.
-    function pushUserEvent(name, params) {
+    function pushUserEvent(name, params, guardKey) {
         if (window.SCM_GCM && typeof window.SCM_GCM.event === 'function') {
-            window.SCM_GCM.event(name, params);
+            window.SCM_GCM.event(name, params, guardKey);
             return;
         }
+        if (guardKey && !once(guardKey)) { return; }
         var obj = { event: name };
         for (var k in params) { if (hasOwn(params, k)) { obj[k] = params[k]; } }
         dl().push(obj);
     }
 
-    // sessionStorage "once" guard. Storage blocked → still emit (once per page).
+    // sessionStorage "once" guard, used here only when the bootstrap is missing (the
+    // bootstrap owns the guard otherwise). Storage blocked → still emit (once per page).
     var onceMem = {};
     function once(key) {
         try {
@@ -243,13 +253,43 @@
 
     var lastPayment = null;
 
-    function onChange(e) {
-        var t = e && e.target;
+    function paymentSelected(t) {
         if (!t || t.name !== 'payment-option') { return; }
         var type = (typeof t.getAttribute === 'function' && t.getAttribute('data-module-name')) || '';
         if (!type || type === lastPayment) { return; }
         lastPayment = type;
         pushEvent('add_payment_info', cartPayload({ payment_type: type }));
+    }
+
+    function onChange(e) { paymentSelected(e && e.target); }
+
+    // A shop with ONE payment option shows it already selected: no change event ever
+    // fires. Deliver add_payment_info once on load when the payment step is the open
+    // step (or the theme has no step markup) and an option is already checked.
+    function paymentPreselected() {
+        var radios = document.querySelectorAll('input[name="payment-option"]');
+        for (var i = 0; i < radios.length; i++) {
+            var r = radios[i];
+            if (!r.checked) { continue; }
+            var node = r, step = null;
+            while (node && node.nodeType === 1) {
+                if (String(node.className || '').indexOf('checkout-step') !== -1) { step = node; break; }
+                node = node.parentNode;
+            }
+            if (step && String(step.className).indexOf('-current') === -1) { continue; }
+            paymentSelected(r);
+            return;
+        }
+    }
+
+    // Cart id of this checkout: server value first, live cart object second.
+    function cartId() {
+        var id = EC.cartId;
+        try {
+            var c = window.prestashop && prestashop.cart;
+            if (!id && c) { id = c.id || c.id_cart; }
+        } catch (e) {}
+        return id ? String(id) : '';
     }
 
     /* ===== Page-load events ===== */
@@ -273,26 +313,29 @@
                     var items = cartItems();
                     pushEvent('view_cart', { currency: currency(), value: itemsValue(items), items: items });
                 } else if (page === 'checkout' || page === 'order') {
-                    pushEvent('begin_checkout', cartPayload({}));
+                    // Once per cart: the checkout page reloads after every step.
+                    pushEvent('begin_checkout', cartPayload({}), 'scm_begin_' + (cartId() || '0'));
                 }
             }
         } catch (e) {}
 
         try {
-            if (EC.shipping && EC.shipping.key && once('scm_ship_' + EC.shipping.key)) {
-                pushEvent('add_shipping_info', cartPayload({ shipping_tier: EC.shipping.tier || '' }));
+            if (EC.shipping && EC.shipping.key) {
+                pushEvent('add_shipping_info', cartPayload({ shipping_tier: EC.shipping.tier || '' }), 'scm_ship_' + EC.shipping.key);
             }
         } catch (e) {}
 
         try {
-            if (EC.userEvent && EC.userEvent.name && once('scm_uevt_' + EC.userEvent.id)) {
-                pushUserEvent(EC.userEvent.name, { method: EC.userEvent.method || 'PrestaShop' });
+            if (EC.userEvent && EC.userEvent.name) {
+                pushUserEvent(EC.userEvent.name, { method: EC.userEvent.method || 'PrestaShop' }, 'scm_uevt_' + EC.userEvent.id);
             }
         } catch (e) {}
 
         if (EC.search) {
             pushUserEvent('search', { search_term: String(EC.search) });
         }
+
+        try { paymentPreselected(); } catch (e) {}
     }
 
     /* ===== add_to_cart / remove_from_cart via prestashop 'updateCart' ===== */

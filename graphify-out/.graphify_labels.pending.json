@@ -1,6 +1,6 @@
 {
   "0": "Scm_Cookieconsent",
-  "1": ".buildEcommercePageData",
+  "1": "helpers.js",
   "2": "scm_cookieconsent.js",
   "3": "openspec-apply-change skill",
   "4": "scm_cookieconsent.min.js",
@@ -12,6 +12,12 @@
   "10": "cookie-bite.svg",
   "11": "gcm_bootstrap.src.js",
   "12": "upgrade-1.7.0.php",
-  "13": "ADDED Requirements",
-  "14": "upgrade-1.8.0.php"
+  "13": "login",
+  "14": "upgrade-1.8.0.php",
+  "15": "ADDED Requirements",
+  "16": "ADDED Requirements",
+  "17": "package.json",
+  "18": "Proposal",
+  "19": "stack.sh",
+  "20": "upgrade-1.9.0.php"
 }

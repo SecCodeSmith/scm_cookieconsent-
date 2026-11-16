@@ -224,7 +224,12 @@ body.scm-modal-open { overflow: hidden; }
 
 /* ===== Actions ===== */
 .scm-actions {
-    display: flex; gap: 10px; flex-wrap: wrap; margin-bottom: 14px;
+    display: flex; gap: 10px; flex-wrap: wrap;
+    /* Always visible: the category list is longer than a phone screen, so the banner scrolls
+       and the buttons stay pinned to its bottom edge — never below the fold (design D7). */
+    position: sticky; bottom: 0; z-index: 1;
+    margin: 0; padding: 12px 0 14px;
+    background: var(--scm-bg); border-top: 1px solid var(--scm-border);
 }
 .scm-btn {
     /* No explicit min-width: the default `min-width: auto` on a flex item
@@ -233,7 +238,7 @@ body.scm-modal-open { overflow: hidden; }
        never shrink narrower than its own label. A fixed min-width smaller
        than a translated label (e.g. long Polish button text) used to let
        the box shrink anyway, spilling the un-wrapped text outside it. */
-    flex: 1;
+    flex: 1 1 0;
     padding: 10px 16px; border-radius: 6px;
     border: 2px solid transparent;
     font-size: 13px; font-weight: 600; cursor: pointer;
@@ -244,24 +249,18 @@ body.scm-modal-open { overflow: hidden; }
 .scm-btn:active { transform: translateY(1px); }
 .scm-btn:focus-visible { outline: 2px solid var(--scm-primary); outline-offset: 2px; }
 
-.scm-btn-reject {
-    background: #fff; border-color: var(--scm-border); color: var(--scm-text);
-}
-.scm-btn-reject:hover { border-color: #b8bec5; background: var(--scm-bg-soft); }
-
+/* One shared look for the three first-layer buttons (design D7): the same neutral outlined
+   style, border, font and no shadow, so rejecting is exactly as easy as accepting. The brand
+   colour stays on focus rings and toggles and cannot make one button heavier. */
+.scm-btn-reject,
+.scm-btn-accept,
 .scm-btn-save {
-    background: #fff; border-color: var(--scm-primary); color: var(--scm-primary);
+    background: #fff; border-color: var(--scm-border); color: var(--scm-text);
+    box-shadow: none; font-size: 13px; font-weight: 600;
 }
-.scm-btn-save:hover { background: var(--scm-primary); color: #fff; }
-
-.scm-btn-accept {
-    background: var(--scm-primary); border-color: var(--scm-primary); color: #fff;
-    box-shadow: 0 2px 8px rgba(47,181,210,0.3);
-}
-.scm-btn-accept:hover {
-    background: #239bb8; border-color: #239bb8;
-    box-shadow: 0 3px 12px rgba(47,181,210,0.4);
-}
+.scm-btn-reject:hover,
+.scm-btn-accept:hover,
+.scm-btn-save:hover { border-color: #b8bec5; background: var(--scm-bg-soft); }
 
 /* ===== Legal footer ===== */
 .scm-legal {
@@ -301,6 +300,13 @@ body.scm-modal-open { overflow: hidden; }
 }
 .scm-reopen-widget:focus-visible { outline: 2px solid var(--scm-primary); outline-offset: 3px; }
 
+/* ===== Footer link ===== */
+.scm-footer-link {
+    margin: 0; padding: 12px 16px; text-align: center; font-size: 13px;
+}
+.scm-footer-link a { color: inherit; text-decoration: underline; cursor: pointer; }
+.scm-footer-link a:focus-visible { outline: 2px solid var(--scm-primary); outline-offset: 2px; }
+
 /* ===== Mobile ===== */
 @media (max-width: 600px) {
     .scm-pos-bottom,
@@ -330,6 +336,8 @@ body.scm-modal-open { overflow: hidden; }
 
     .scm-banner-title { font-size: 16px; }
     .scm-reopen-widget { width: 42px; height: 42px; bottom: 14px; left: 14px; }
+    /* The footer link replaces the round button on phones: it can never sit over an add-to-cart bar. */
+    .scm-reopen-widget.scm-has-footer-link { display: none !important; }
 }
 
 /* ===== Reduced motion ===== */

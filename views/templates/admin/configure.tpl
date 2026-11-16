@@ -105,8 +105,8 @@
             <div class="form-group">
                 <label class="control-label col-lg-3">{l s='Czas ważności zgody (dni)' mod='scm_cookieconsent'}</label>
                 <div class="col-lg-3">
-                    <input type="number" name="SCM_COOKIE_EXPIRY_DAYS" value="{$scm_config.EXPIRY_DAYS|intval}" class="form-control" min="1" max="3650">
-                    <p class="help-block">{l s='Zalecane przez UODO: maks. 12 miesięcy (365 dni).' mod='scm_cookieconsent'}</p>
+                    <input type="number" name="SCM_COOKIE_EXPIRY_DAYS" value="{$scm_config.EXPIRY_DAYS|intval}" class="form-control" min="1" max="365">
+                    <p class="help-block">{l s='Maksymalnie 365 dni (zalecenie UODO: do 12 miesięcy). Po upływie tego czasu baner pojawi się ponownie.' mod='scm_cookieconsent'}</p>
                 </div>
             </div>
 
@@ -118,6 +118,20 @@
                             <option value="{$val}" {if $scm_config.POSITION == $val}selected{/if}>{$lbl|escape:'html':'UTF-8'}</option>
                         {/foreach}
                     </select>
+                </div>
+            </div>
+
+            <div class="form-group">
+                <label class="control-label col-lg-3">{l s='Pokaż link „Zmień ustawienia cookies” w stopce' mod='scm_cookieconsent'}</label>
+                <div class="col-lg-6">
+                    <span class="switch prestashop-switch fixed-width-lg">
+                        <input type="radio" name="SCM_COOKIE_SHOW_FOOTER_LINK" id="scm_show_footer_link_on"  value="1" {if $scm_config.SHOW_FOOTER_LINK}checked{/if}>
+                        <label for="scm_show_footer_link_on">{l s='TAK' mod='scm_cookieconsent'}</label>
+                        <input type="radio" name="SCM_COOKIE_SHOW_FOOTER_LINK" id="scm_show_footer_link_off" value="0" {if !$scm_config.SHOW_FOOTER_LINK}checked{/if}>
+                        <label for="scm_show_footer_link_off">{l s='NIE' mod='scm_cookieconsent'}</label>
+                        <a class="slide-button btn"></a>
+                    </span>
+                    <p class="help-block">{l s='Tekstowy link na każdej stronie, który otwiera baner z zapisanym wyborem. Na telefonach (poniżej 600 px) zastępuje okrągły przycisk, aby nie zasłaniał przycisków zakupu.' mod='scm_cookieconsent'}</p>
                 </div>
             </div>
 
@@ -490,6 +504,16 @@
     {*  TAB — INTEGRATIONS (Google / Meta)                          *}
     {* ========================================================== *}
     {if $scm_active_tab == 'integrations'}
+
+    {* --- basic mode: what this module gates and what it cannot --- *}
+    <div class="alert alert-info scm-basic-mode-note">
+        <strong>{l s='Tryb podstawowy Consent Mode.' mod='scm_cookieconsent'}</strong>
+        {l s='Moduł nie ładuje żadnego tagu Google ani Meta przed zgodą: skrypt gtag.js lub kontener GTM jest pobierany dopiero po wyrażeniu zgody na odpowiednią kategorię. Dotyczy to wyłącznie skryptów drukowanych przez ten moduł. Kontener lub tag Google dodany przez inny moduł (np. zewnętrzny moduł GTM) nie jest przez niego blokowany przed zgodą — wyłącz ładowanie w tamtym module albo skonfiguruj go tak, aby czekał na zdarzenie scm_consent_update.' mod='scm_cookieconsent'}
+    </div>
+    <div class="alert alert-warning scm-basic-mode-note">
+        <strong>{l s='Lista kontrolna dla kontenera GTM.' mod='scm_cookieconsent'}</strong>
+        {l s='Moduł może zagwarantować tylko, że kontener nie zostanie pobrany bez zgody. Po zgodzie wyłącznie na analitykę kontener i tak się załaduje, a tagi w jego wnętrzu (Google Ads, remarketing) mogą wysłać zapytanie bez ciasteczek, jeśli nie wymagają zgody. W każdym takim tagu ustaw w GTM „Advanced Settings → Consent Settings → Require additional consent” na ad_storage (oraz ad_user_data i ad_personalization dla Google Ads), a tag GA4 na analytics_storage.' mod='scm_cookieconsent'}
+    </div>
 
     {* --- status overview --- *}
     <div class="panel">

@@ -37,7 +37,7 @@ class Scm_Cookieconsent extends Module
     {
         $this->name          = 'scm_cookieconsent';
         $this->tab           = 'front_office_features';
-        $this->version       = '1.8.0';
+        $this->version       = '1.9.0';
         $this->author        = 'SCM Jakub Berechowski';
         $this->need_instance = 0;
         $this->bootstrap     = true;
@@ -453,6 +453,7 @@ class Scm_Cookieconsent extends Module
             'COLOR_PRIMARY'   => '#2fb5d2',
             'COLOR_ACCENT'    => '#69b92d',
             'SHOW_REOPEN'     => 1,
+            'SHOW_FOOTER_LINK' => 1,
 
             // Google Consent Mode v2
             'GCM_ENABLED'         => 1,
@@ -494,7 +495,7 @@ class Scm_Cookieconsent extends Module
     {
         $keys = [
             'COMPANY_NAME', 'COMPANY_ADDRESS', 'COMPANY_EMAIL', 'PRIVACY_URL',
-            'EXPIRY_DAYS', 'POSITION', 'COLOR_PRIMARY', 'COLOR_ACCENT', 'SHOW_REOPEN',
+            'EXPIRY_DAYS', 'POSITION', 'COLOR_PRIMARY', 'COLOR_ACCENT', 'SHOW_REOPEN', 'SHOW_FOOTER_LINK',
             'GCM_ENABLED', 'GCM_WAIT_MS', 'GCM_URL_PASSTHROUGH', 'GCM_ADS_REDACTION', 'GCM_REGION', 'GCM_SECURITY_GRANTED',
             'GTM_ID', 'GA4_ID', 'ADS_ID', 'META_PIXEL_ID', 'ADS_CONVERSION_LABEL', 'ADS_FORCE_DIRECT',
         ];
@@ -605,8 +606,8 @@ class Scm_Cookieconsent extends Module
         $email  = trim(Tools::getValue(self::CONFIG_PREFIX . 'COMPANY_EMAIL'));
         $url    = trim(Tools::getValue(self::CONFIG_PREFIX . 'PRIVACY_URL'));
 
-        if ($expiry < 1 || $expiry > 3650) {
-            $errors[] = $this->l('Czas ważności zgody musi być w zakresie 1–3650 dni.');
+        if ($expiry < 1 || $expiry > 365) {
+            $errors[] = $this->l('Czas ważności zgody musi być w zakresie 1–365 dni (maksymalnie 365 dni).');
         }
 
         if (!in_array($pos, ['bottom', 'center', 'bottom-left'], true)) {
@@ -625,7 +626,7 @@ class Scm_Cookieconsent extends Module
             return $this->displayError(implode('<br>', $errors));
         }
 
-        $fields = ['COMPANY_NAME', 'COMPANY_ADDRESS', 'COMPANY_EMAIL', 'PRIVACY_URL', 'EXPIRY_DAYS', 'POSITION', 'SHOW_REOPEN'];
+        $fields = ['COMPANY_NAME', 'COMPANY_ADDRESS', 'COMPANY_EMAIL', 'PRIVACY_URL', 'EXPIRY_DAYS', 'POSITION', 'SHOW_REOPEN', 'SHOW_FOOTER_LINK'];
         foreach ($fields as $f) {
             Configuration::updateValue(self::CONFIG_PREFIX . $f, Tools::getValue(self::CONFIG_PREFIX . $f), true);
         }
@@ -949,7 +950,7 @@ class Scm_Cookieconsent extends Module
 
         $keys = [
             'COMPANY_NAME', 'COMPANY_ADDRESS', 'COMPANY_EMAIL', 'PRIVACY_URL',
-            'EXPIRY_DAYS', 'POSITION', 'COLOR_PRIMARY', 'COLOR_ACCENT', 'SHOW_REOPEN',
+            'EXPIRY_DAYS', 'POSITION', 'COLOR_PRIMARY', 'COLOR_ACCENT', 'SHOW_REOPEN', 'SHOW_FOOTER_LINK',
             'GCM_ENABLED', 'GCM_WAIT_MS', 'GCM_URL_PASSTHROUGH', 'GCM_ADS_REDACTION', 'GCM_REGION', 'GCM_SECURITY_GRANTED',
             'GTM_ID', 'GA4_ID', 'ADS_ID', 'META_PIXEL_ID', 'ADS_CONVERSION_LABEL', 'ADS_FORCE_DIRECT',
         ];
@@ -1162,6 +1163,7 @@ class Scm_Cookieconsent extends Module
             'scm_company_email' => $cfg['COMPANY_EMAIL'],
             'scm_expiry_days'   => (int) $cfg['EXPIRY_DAYS'] ?: 365,
             'scm_show_reopen'   => (bool) $cfg['SHOW_REOPEN'],
+            'scm_show_footer_link' => (bool) $cfg['SHOW_FOOTER_LINK'],
             'scm_color_primary' => $cfg['COLOR_PRIMARY'] ?: '#2fb5d2',
             'scm_color_accent'  => $cfg['COLOR_ACCENT']  ?: '#69b92d',
             'scm_txt_title'     => $cfg['TXT_TITLE'],
@@ -1413,6 +1415,7 @@ class Scm_Cookieconsent extends Module
         } elseif ($pageName === 'order' || $pageName === 'checkout') {
             $data['coupon']   = $this->getCartCouponString();
             $data['shipping'] = $this->getCompletedShipping($idLang);
+            $data['cartId']   = (isset($this->context->cart) && $this->context->cart) ? (int) $this->context->cart->id : 0;
         }
 
         return $data;

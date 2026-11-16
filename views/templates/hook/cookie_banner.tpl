@@ -144,7 +144,7 @@ window.SCM_COOKIE_CONFIG = {
 <button
     type="button"
     id="scm-reopen-widget"
-    class="scm-reopen-widget"
+    class="scm-reopen-widget{if $scm_show_footer_link} scm-has-footer-link{/if}"
     aria-label="{$scm_txt_reopen|escape:'html':'UTF-8'}"
     title="{$scm_txt_reopen|escape:'html':'UTF-8'}"
     hidden
@@ -152,4 +152,9 @@ window.SCM_COOKIE_CONFIG = {
     <img src="{$scm_module_dir|escape:'html':'UTF-8'}views/img/cookie-bite.svg" alt="" width="22" height="22" aria-hidden="true">
     <span class="scm-sr-only">{$scm_txt_reopen|escape:'html':'UTF-8'}</span>
 </button>
+{/if}
+
+{if $scm_show_footer_link}
+{* Text link in the footer area: always reachable, also where the round button is hidden (phones). *}
+<p class="scm-footer-link"><a href="#" class="scm-reopen-link">{$scm_txt_reopen|escape:'html':'UTF-8'}</a></p>
 {/if}

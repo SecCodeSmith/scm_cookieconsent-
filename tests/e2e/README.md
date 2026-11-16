@@ -1,7 +1,7 @@
 # scm_cookieconsent - end-to-end tests (Playwright)
 
-Real-storefront proof for the GA4 events of module version 1.8.0 (OpenSpec change
-`complete-ga4-ecommerce-measurement`). The logic is unit-tested elsewhere; these tests drive a real
+Real-storefront proof for the GA4 events (OpenSpec change `complete-ga4-ecommerce-measurement`) and for
+Consent Mode basic (change `consent-mode-basic`, module 1.9.0). The logic is unit-tested elsewhere; these tests drive a real
 PrestaShop 8.1 (classic theme, demo catalog) and read every `dataLayer` push.
 
 ## Prerequisites
@@ -18,13 +18,13 @@ PrestaShop 8.1 (classic theme, demo catalog) and read every `dataLayer` push.
 `SCM_E2E_PORT`). From Git Bash:
 
 ```
-wsl -d Debian -e bash -lc 'cd /mnt/c/Users/Kuba/Desktop/RORO/scm_cookieconsent/tests/e2e && ./stack.sh <cmd>'
+wsl -d Debian -e bash -lc 'cd /mnt/<drive>/<path to the clone>/tests/e2e && ./stack.sh <cmd>'
 ```
 
 | command | effect |
 | --- | --- |
 | `up` | start PrestaShop + MariaDB, wait until the shop answers |
-| `reset` | up + sync working tree + (re)install module - a clean starting point (module 1.8.0) |
+| `reset` | up + sync working tree + (re)install module - a clean starting point (module 1.9.0) |
 | `sync [git-ref]` | copy the module into the shop (working tree, or a git ref such as `HEAD`) |
 | `install` / `uninstall` / `upgrade` | module lifecycle through the PrestaShop console |
 | `config KEY VALUE` | set `SCM_COOKIE_<KEY>` |
@@ -43,29 +43,33 @@ npx playwright test 03              # one spec
 
 Specs run in numeric order on one worker (one shared shop). Each spec sets the Google tag mode it needs
 (`setMode('gtag'|'gtm')`) and only requires the module to be installed. `01-upgrade` uninstalls and
-reinstalls the module and runs `stack.sh reset` afterwards, so later specs find 1.8.0 installed.
+reinstalls the module and runs `stack.sh reset` afterwards, so later specs find 1.9.0 installed.
 Whole suite takes about 4 minutes. `SCM_E2E_TEST_TIMEOUT` (ms) shortens the checkout journey timeout when debugging.
 
 Failures keep a trace in `test-results/` (`npx playwright show-trace <trace.zip>`).
 
 ## Helpers (`specs/helpers.js`)
 
+- fixture `requests`: records every request URL of the test (`requests.toHosts()`, `.tracking()`, `.since(mark)`, `.mark()`); analytics and
+  advertising hosts (`googletagmanager.com`, `google-analytics.com`, `analytics.google.com`, `doubleclick.net`, `googleadservices.com`,
+  `googlesyndication.com`, `connect.facebook.net`) are answered with an empty stub script, so no real hit is sent and a late grant sees a
+  normal load. Specs must not assume the tag runs: the stub sets no cookies.
 - fixture `ga`: records every `dataLayer` push of every page of a test (survives navigations); `ga.events(name)`
   works for both shapes (GTM object `{event, ecommerce}` / flat `{event, ...}` and gtag command
-  `{gtag:['event', name, params]}`); `ga.waitFor(name, n)`; JS dialogs are recorded too. Google/Meta network
-  requests are blocked.
-- `stack()`, `sql()`, `setMode()`, `go()` (opens a URL and accepts the cookie banner), `createVoucher()`,
+  `{gtag:['event', name, params]}`); `ga.waitFor(name, n)`; JS dialogs are recorded too.
+- `stack()`, `sql()`, `setMode()`, `go()` (opens a URL, accepts the cookie banner and waits for `SCM_GCM.ready`), `createVoucher()`,
   `addToCart()`, `fillGuest()`, `fillAddress()`, `chooseCarrier()`.
 
 ## What each spec covers
 
 | spec | OpenSpec task | proves |
 | --- | --- | --- |
-| `01-upgrade.spec.js` | 6.1 | 1.7.0 (git HEAD) installs without `actionAuthentication` / `actionCustomerAccountAdd`; the 1.8.0 upgrade registers both; version is 1.8.0 |
+| `01-upgrade.spec.js` | 6.1, consent-mode-basic 4.1 | 1.7.0 (pinned commit) installs without `actionAuthentication` / `actionCustomerAccountAdd`; the upgrade registers both, clamps a 730-day lifetime to 365, seeds `SHOW_FOOTER_LINK`; version is 1.9.0 |
 | `02-catalog.spec.js` | 3.1, 5.3 | category `view_item_list` (id/name/index = displayed miniatures); facet filter re-emits; `select_item` with list and index recorded before navigation; `view_item` with combination label + discount; size switch emits a second `view_item`; `search` (trimmed term, `search` list); empty query silent; script-like query reported verbatim, no dialog; GTM mode: search is flat, no `ecommerce`, no `{ecommerce:null}` before it |
 | `03-checkout.spec.js` | 4.2, 6.4 (checkout) | `add_to_cart` variant equals `view_item` variant; `view_cart`; voucher `E2E10` -> `begin_checkout.coupon`; guest checkout (Poland, "My carrier") -> `add_shipping_info` with tier + coupon, and SQL check of `ps_cart.checkout_session_data` (`*delivery*` step complete); `add_payment_info` (`ps_wirepayment`) once; `purchase` with order reference, coupon, EUR, base item name + variant; no second `purchase` on reload; no `sign_up` for guests; `remove_from_cart` of a deleted line |
 | `04-account.spec.js` | 5.1, 5.2 | registration -> exactly one `sign_up`, no `login`, none after reload; logout/login -> one `login`; wrong password -> none; no e-mail/hash/customer id in any event; GTM mode: `login` is flat |
-| `05-admin.spec.js` | 3.5 | back-office config page, Integrations tab ("Jak to dziala" lists `add_shipping_info`), Consent Mode tab (GTM how-to "Krok 4" with the new trigger names) and GDPR help tab render without Smarty/PHP errors |
+| `05-admin.spec.js` | 3.5 | back-office config page, Integrations tab ("Jak to dziala" lists `add_shipping_info`), Consent Mode tab (GTM how-to "Krok 4" with the new trigger names) and GDPR help tab render without Smarty/PHP errors; Integrations tab basic-mode notice and GTM checklist; a lifetime of 400 days is refused, 365 accepted |
+| `06-consent-basic.spec.js` | consent-mode-basic 1.2-3.2 | request log, no Google host before a grant or after a reject / close; late grant order (tag, `update`, `scm_consent_update`, events); full journey in direct and GTM mode; analytics-only (no Ads config or conversion) and marketing added later; withdrawal; purchase guard at delivery, `begin_checkout` once, single preselected payment option; equal buttons at 390x844 and 1366x768, footer link, no overlap of add-to-cart, 365-day lifetime |
 
 ## Notes
 

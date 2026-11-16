@@ -110,6 +110,20 @@ if ((Test-Path $jsSrc) -and (Test-Path $jsMin)) {
     }
 }
 
+# --- Minified bootstrap drift check ----------------------------------------
+# The head bootstrap is printed from a minified copy inside gcm_bootstrap.tpl. Re-minify the
+# readable source (pinned terser, -c -m) and fail the build when the template payload differs,
+# so an edit of views/js/src/gcm_bootstrap.src.js can never ship without its minified copy.
+# Fix a mismatch with: node tests/unit/check-bootstrap-min.js --write
+$node = Get-Command node -ErrorAction SilentlyContinue
+if (-not $node) {
+    throw "node is required to verify the minified bootstrap (tests/unit/check-bootstrap-min.js)."
+}
+& node (Join-Path $ModuleRoot 'tests/unit/check-bootstrap-min.js')
+if ($LASTEXITCODE -ne 0) {
+    throw "views/templates/hook/gcm_bootstrap.tpl is out of date with views/js/src/gcm_bootstrap.src.js - run: node tests/unit/check-bootstrap-min.js --write"
+}
+
 # --- Stage a clean copy ------------------------------------------------------
 $stagingRoot = Join-Path ([System.IO.Path]::GetTempPath()) "scm_cookieconsent-build-$([guid]::NewGuid())"
 $staging     = Join-Path $stagingRoot $ModuleName
@@ -118,7 +132,7 @@ New-Item -ItemType Directory -Path $staging -Force | Out-Null
 # robocopy exit codes 0-7 are all "success" (8+ means real errors)
 $excludeDirs = @('.git', 'dist', 'docs', 'tests', '.vscode', '.idea', 'node_modules', 'graphify-out', 'openspec', '.claude')
 $excludeFiles = @(
-    'build.ps1', '.gitignore', 'CLAUDE.md', '*.map', 'Thumbs.db', '.DS_Store', '*.swp', '*~',
+    'build.ps1', '.gitignore', '.gitattributes', 'CLAUDE.md', '*.map', 'Thumbs.db', '.DS_Store', '*.swp', '*~',
     'config.inc.php', 'config_*.inc.php'
 )
 robocopy $ModuleRoot $staging /E /XD $excludeDirs /XF $excludeFiles /NFL /NDL /NJH /NJS | Out-Null

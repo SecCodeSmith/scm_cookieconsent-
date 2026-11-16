@@ -37,7 +37,7 @@ class Scm_Cookieconsent extends Module
     {
         $this->name          = 'scm_cookieconsent';
         $this->tab           = 'front_office_features';
-        $this->version       = '1.8.0';
+        $this->version       = '1.9.0';
         $this->author        = 'SCM Jakub Berechowski';
         $this->need_instance = 0;
         $this->bootstrap     = true;
@@ -57,10 +57,14 @@ class Scm_Cookieconsent extends Module
     {
         static $texts = [
             'pl' => [
-                'TITLE'        => 'Szanujemy Twoją prywatność',
-                'INTRO'        => 'Używamy plików cookie, aby zapewnić najlepsze działanie sklepu oraz analizować ruch. Możesz zaakceptować wszystkie cookies, odrzucić opcjonalne lub dostosować ustawienia. Szczegóły znajdziesz w naszej Polityce prywatności.',
+                'TITLE'        => 'Korzystamy z ciasteczek',
+                'INTRO'        => 'Używamy plików cookie, aby sklep działał poprawnie. Za Twoją zgodą użyjemy ich też do analizy ruchu i reklam. Zdecyduj, na co się zgadzasz.',
                 'BTN_ACCEPT'   => 'Akceptuję wszystkie',
                 'BTN_REJECT'   => 'Odrzuć opcjonalne',
+                'BTN_SETTINGS' => 'Ustawienia cookies',
+                'BTN_BACK'     => 'Wróć',
+                'SETTINGS_TITLE' => 'Ustawienia ciasteczek',
+                'SETTINGS_INTRO' => 'Poniżej sprawdzisz, do czego służy każda kategoria. Niezbędne działają zawsze, pozostałe włączasz sam. Wybór możesz zmienić w każdej chwili.',
                 'BTN_SAVE'     => 'Zapisz wybór',
                 'REOPEN'       => 'Zmień ustawienia cookies',
                 'ALWAYS_ON'    => 'Zawsze aktywne',
@@ -72,10 +76,14 @@ class Scm_Cookieconsent extends Module
                 'LEGAL'        => 'Podstawa prawna: art. 6 ust. 1 lit. a RODO (Rozporządzenie Parlamentu Europejskiego i Rady (UE) 2016/679) — Twoja zgoda. Masz prawo dostępu do swoich danych, ich sprostowania, usunięcia, ograniczenia przetwarzania, przenoszenia oraz wniesienia sprzeciwu. Możesz w każdej chwili wycofać zgodę (nie wpływa to na zgodność z prawem przetwarzania dokonanego przed jej wycofaniem). Przysługuje Ci również prawo wniesienia skargi do Prezesa Urzędu Ochrony Danych Osobowych (UODO) z siedzibą w Warszawie.',
             ],
             'en' => [
-                'TITLE'        => 'We respect your privacy',
-                'INTRO'        => 'We use cookies to ensure the store works properly and to analyse traffic. You can accept all cookies, reject the optional ones, or adjust your preferences. See our Privacy Policy for details.',
+                'TITLE'        => 'We use cookies',
+                'INTRO'        => 'We use cookies so the store works properly. With your consent we also use them to analyse traffic and for advertising. Decide what you agree to.',
                 'BTN_ACCEPT'   => 'Accept all',
                 'BTN_REJECT'   => 'Reject optional',
+                'BTN_SETTINGS' => 'Cookie settings',
+                'BTN_BACK'     => 'Back',
+                'SETTINGS_TITLE' => 'Cookie settings',
+                'SETTINGS_INTRO' => 'Below you can see what each category is for. Necessary cookies always work, you switch on the others yourself. You can change your choice at any time.',
                 'BTN_SAVE'     => 'Save my choice',
                 'REOPEN'       => 'Change cookie settings',
                 'ALWAYS_ON'    => 'Always active',
@@ -87,10 +95,14 @@ class Scm_Cookieconsent extends Module
                 'LEGAL'        => 'Legal basis: art. 6(1)(a) GDPR (Regulation (EU) 2016/679) — your consent. You have the right to access, rectify and erase your data, to restrict processing, to data portability and to object. You may withdraw your consent at any time (this does not affect the lawfulness of processing carried out before the withdrawal). You also have the right to lodge a complaint with your data protection supervisory authority.',
             ],
             'de' => [
-                'TITLE'        => 'Wir respektieren Ihre Privatsphäre',
-                'INTRO'        => 'Wir verwenden Cookies, um den ordnungsgemäßen Betrieb des Shops zu gewährleisten und den Datenverkehr zu analysieren. Sie können alle Cookies akzeptieren, optionale ablehnen oder Ihre Einstellungen anpassen. Einzelheiten finden Sie in unserer Datenschutzerklärung.',
+                'TITLE'        => 'Wir verwenden Cookies',
+                'INTRO'        => 'Wir verwenden Cookies, damit der Shop richtig funktioniert. Mit Ihrer Einwilligung nutzen wir sie auch zur Verkehrsanalyse und für Werbung. Entscheiden Sie, was Sie erlauben.',
                 'BTN_ACCEPT'   => 'Alle akzeptieren',
                 'BTN_REJECT'   => 'Optionale ablehnen',
+                'BTN_SETTINGS' => 'Cookie-Einstellungen',
+                'BTN_BACK'     => 'Zurück',
+                'SETTINGS_TITLE' => 'Cookie-Einstellungen',
+                'SETTINGS_INTRO' => 'Hier sehen Sie, wofür jede Kategorie dient. Notwendige Cookies sind immer aktiv, die übrigen schalten Sie selbst ein. Sie können Ihre Wahl jederzeit ändern.',
                 'BTN_SAVE'     => 'Auswahl speichern',
                 'REOPEN'       => 'Cookie-Einstellungen ändern',
                 'ALWAYS_ON'    => 'Immer aktiv',
@@ -102,10 +114,14 @@ class Scm_Cookieconsent extends Module
                 'LEGAL'        => 'Rechtsgrundlage: Art. 6 Abs. 1 lit. a DSGVO (Verordnung (EU) 2016/679) — Ihre Einwilligung. Sie haben das Recht auf Auskunft, Berichtigung, Löschung, Einschränkung der Verarbeitung, Datenübertragbarkeit und Widerspruch. Sie können Ihre Einwilligung jederzeit widerrufen (die Rechtmäßigkeit der bis zum Widerruf erfolgten Verarbeitung bleibt unberührt). Ihnen steht außerdem das Recht zu, Beschwerde bei der zuständigen Datenschutzaufsichtsbehörde einzulegen.',
             ],
             'fr' => [
-                'TITLE'        => 'Nous respectons votre vie privée',
-                'INTRO'        => 'Nous utilisons des cookies pour assurer le bon fonctionnement de la boutique et analyser le trafic. Vous pouvez accepter tous les cookies, refuser les cookies optionnels ou personnaliser vos préférences. Consultez notre Politique de confidentialité pour plus de détails.',
+                'TITLE'        => 'Nous utilisons des cookies',
+                'INTRO'        => 'Nous utilisons des cookies pour que la boutique fonctionne correctement. Avec votre accord, nous les utilisons aussi pour analyser le trafic et pour la publicité. Décidez de ce que vous acceptez.',
                 'BTN_ACCEPT'   => 'Tout accepter',
                 'BTN_REJECT'   => 'Refuser les optionnels',
+                'BTN_SETTINGS' => 'Paramètres des cookies',
+                'BTN_BACK'     => 'Retour',
+                'SETTINGS_TITLE' => 'Paramètres des cookies',
+                'SETTINGS_INTRO' => 'Voici à quoi sert chaque catégorie. Les cookies nécessaires sont toujours actifs, vous activez les autres vous-même. Vous pouvez modifier votre choix à tout moment.',
                 'BTN_SAVE'     => 'Enregistrer mon choix',
                 'REOPEN'       => 'Modifier les paramètres des cookies',
                 'ALWAYS_ON'    => 'Toujours actifs',
@@ -123,10 +139,31 @@ class Scm_Cookieconsent extends Module
         return isset($texts[$iso]) ? $texts[$iso] : $texts['en'];
     }
 
+    /**
+     * Text colour for a filled button of the given background: white, or near black when white would
+     * fall below the WCAG AA contrast (4.5:1) on that background.
+     */
+    public static function readableOn($hex)
+    {
+        $hex = ltrim((string) $hex, '#');
+        if (strlen($hex) !== 6 || !ctype_xdigit($hex)) {
+            return '#ffffff';
+        }
+        $lin = function ($c) {
+            $c = $c / 255;
+
+            return $c <= 0.03928 ? $c / 12.92 : pow(($c + 0.055) / 1.055, 2.4);
+        };
+        $l = 0.2126 * $lin(hexdec(substr($hex, 0, 2))) + 0.7152 * $lin(hexdec(substr($hex, 2, 2))) + 0.0722 * $lin(hexdec(substr($hex, 4, 2)));
+
+        return (1.05 / ($l + 0.05)) >= 4.5 ? '#ffffff' : '#1a1a1a';
+    }
+
     /** All TXT_* configuration suffixes (stored per language). */
     public static function getTextKeys()
     {
-        return ['TITLE', 'INTRO', 'BTN_ACCEPT', 'BTN_REJECT', 'BTN_SAVE', 'REOPEN',
+        return ['TITLE', 'INTRO', 'BTN_ACCEPT', 'BTN_REJECT', 'BTN_SAVE', 'BTN_SETTINGS', 'BTN_BACK',
+                'SETTINGS_TITLE', 'SETTINGS_INTRO', 'REOPEN',
                 'ALWAYS_ON', 'ENABLED', 'DISABLED', 'PRIVACY_LINK', 'CONTROLLER', 'CLOSE', 'LEGAL'];
     }
 
@@ -453,6 +490,7 @@ class Scm_Cookieconsent extends Module
             'COLOR_PRIMARY'   => '#2fb5d2',
             'COLOR_ACCENT'    => '#69b92d',
             'SHOW_REOPEN'     => 1,
+            'SHOW_FOOTER_LINK' => 1,
 
             // Google Consent Mode v2
             'GCM_ENABLED'         => 1,
@@ -494,7 +532,7 @@ class Scm_Cookieconsent extends Module
     {
         $keys = [
             'COMPANY_NAME', 'COMPANY_ADDRESS', 'COMPANY_EMAIL', 'PRIVACY_URL',
-            'EXPIRY_DAYS', 'POSITION', 'COLOR_PRIMARY', 'COLOR_ACCENT', 'SHOW_REOPEN',
+            'EXPIRY_DAYS', 'POSITION', 'COLOR_PRIMARY', 'COLOR_ACCENT', 'SHOW_REOPEN', 'SHOW_FOOTER_LINK',
             'GCM_ENABLED', 'GCM_WAIT_MS', 'GCM_URL_PASSTHROUGH', 'GCM_ADS_REDACTION', 'GCM_REGION', 'GCM_SECURITY_GRANTED',
             'GTM_ID', 'GA4_ID', 'ADS_ID', 'META_PIXEL_ID', 'ADS_CONVERSION_LABEL', 'ADS_FORCE_DIRECT',
         ];
@@ -605,8 +643,8 @@ class Scm_Cookieconsent extends Module
         $email  = trim(Tools::getValue(self::CONFIG_PREFIX . 'COMPANY_EMAIL'));
         $url    = trim(Tools::getValue(self::CONFIG_PREFIX . 'PRIVACY_URL'));
 
-        if ($expiry < 1 || $expiry > 3650) {
-            $errors[] = $this->l('Czas ważności zgody musi być w zakresie 1–3650 dni.');
+        if ($expiry < 1 || $expiry > 365) {
+            $errors[] = $this->l('Czas ważności zgody musi być w zakresie 1–365 dni (maksymalnie 365 dni).');
         }
 
         if (!in_array($pos, ['bottom', 'center', 'bottom-left'], true)) {
@@ -625,7 +663,7 @@ class Scm_Cookieconsent extends Module
             return $this->displayError(implode('<br>', $errors));
         }
 
-        $fields = ['COMPANY_NAME', 'COMPANY_ADDRESS', 'COMPANY_EMAIL', 'PRIVACY_URL', 'EXPIRY_DAYS', 'POSITION', 'SHOW_REOPEN'];
+        $fields = ['COMPANY_NAME', 'COMPANY_ADDRESS', 'COMPANY_EMAIL', 'PRIVACY_URL', 'EXPIRY_DAYS', 'POSITION', 'SHOW_REOPEN', 'SHOW_FOOTER_LINK'];
         foreach ($fields as $f) {
             Configuration::updateValue(self::CONFIG_PREFIX . $f, Tools::getValue(self::CONFIG_PREFIX . $f), true);
         }
@@ -949,7 +987,7 @@ class Scm_Cookieconsent extends Module
 
         $keys = [
             'COMPANY_NAME', 'COMPANY_ADDRESS', 'COMPANY_EMAIL', 'PRIVACY_URL',
-            'EXPIRY_DAYS', 'POSITION', 'COLOR_PRIMARY', 'COLOR_ACCENT', 'SHOW_REOPEN',
+            'EXPIRY_DAYS', 'POSITION', 'COLOR_PRIMARY', 'COLOR_ACCENT', 'SHOW_REOPEN', 'SHOW_FOOTER_LINK',
             'GCM_ENABLED', 'GCM_WAIT_MS', 'GCM_URL_PASSTHROUGH', 'GCM_ADS_REDACTION', 'GCM_REGION', 'GCM_SECURITY_GRANTED',
             'GTM_ID', 'GA4_ID', 'ADS_ID', 'META_PIXEL_ID', 'ADS_CONVERSION_LABEL', 'ADS_FORCE_DIRECT',
         ];
@@ -1162,13 +1200,19 @@ class Scm_Cookieconsent extends Module
             'scm_company_email' => $cfg['COMPANY_EMAIL'],
             'scm_expiry_days'   => (int) $cfg['EXPIRY_DAYS'] ?: 365,
             'scm_show_reopen'   => (bool) $cfg['SHOW_REOPEN'],
+            'scm_show_footer_link' => (bool) $cfg['SHOW_FOOTER_LINK'],
             'scm_color_primary' => $cfg['COLOR_PRIMARY'] ?: '#2fb5d2',
             'scm_color_accent'  => $cfg['COLOR_ACCENT']  ?: '#69b92d',
+            'scm_color_on_primary' => self::readableOn($cfg['COLOR_PRIMARY'] ?: '#2fb5d2'),
             'scm_txt_title'     => $cfg['TXT_TITLE'],
             'scm_txt_intro'     => $cfg['TXT_INTRO'],
             'scm_txt_accept'    => $cfg['TXT_BTN_ACCEPT'],
             'scm_txt_reject'    => $cfg['TXT_BTN_REJECT'],
             'scm_txt_save'      => $cfg['TXT_BTN_SAVE'],
+            'scm_txt_settings'  => $cfg['TXT_BTN_SETTINGS'],
+            'scm_txt_back'      => $cfg['TXT_BTN_BACK'],
+            'scm_txt_settings_title' => $cfg['TXT_SETTINGS_TITLE'],
+            'scm_txt_settings_intro' => $cfg['TXT_SETTINGS_INTRO'],
             'scm_txt_reopen'    => $cfg['TXT_REOPEN'],
             'scm_txt_always_on' => $cfg['TXT_ALWAYS_ON'],
             'scm_txt_enabled'   => $cfg['TXT_ENABLED'],
@@ -1413,6 +1457,7 @@ class Scm_Cookieconsent extends Module
         } elseif ($pageName === 'order' || $pageName === 'checkout') {
             $data['coupon']   = $this->getCartCouponString();
             $data['shipping'] = $this->getCompletedShipping($idLang);
+            $data['cartId']   = (isset($this->context->cart) && $this->context->cart) ? (int) $this->context->cart->id : 0;
         }
 
         return $data;

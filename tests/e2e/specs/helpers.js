@@ -59,15 +59,49 @@ const RECORDER = () => {
 };
 
 /**
- * Fixture `ga`: every dataLayer push of every page in this test, in order, survives
- * navigations. External Google/Meta requests are blocked so no real hits are sent.
+ * Analytics / advertising hosts the module must not contact before a grant (design D9). Requests to
+ * them are recorded, then answered with an empty stub script so no real hit ever leaves the machine.
+ */
+const TRACKING_HOSTS = [
+  'googletagmanager.com', 'google-analytics.com', 'analytics.google.com', 'doubleclick.net',
+  'googleadservices.com', 'googlesyndication.com', 'connect.facebook.net',
+];
+const TRACKING_RE = /googletagmanager\.com|google-analytics\.com|analytics\.google\.com|doubleclick\.net|googleadservices\.com|googlesyndication\.com|connect\.facebook\.net/;
+
+/**
+ * Fixture `requests`: every request URL of the test, in order, across navigations.
+ * `requests.toHosts()` -> list of tracking hosts requested; `requests.since(mark)` -> URLs after a
+ * `requests.mark()`; `requests.tracking()` -> only the URLs aimed at a tracking host.
+ * Tracking hosts are answered with an empty 200 script (a late grant sees a normal load).
+ */
+const withRequests = {
+  requests: async ({ page }, use) => {
+    const urls = [];
+    page.on('request', (req) => { urls.push(req.url()); });
+    await page.route(TRACKING_RE, (route) => route.fulfill({ status: 200, contentType: 'application/javascript', body: '' }));
+    const hostOf = (u) => { try { return new URL(u).hostname; } catch (e) { return ''; } };
+    const isTracking = (u) => TRACKING_HOSTS.some((h) => hostOf(u) === h || hostOf(u).endsWith('.' + h));
+    const api = {
+      urls,
+      mark: () => urls.length,
+      since: (mark) => urls.slice(mark),
+      tracking: (mark = 0) => urls.slice(mark).filter(isTracking),
+      toHosts: (mark = 0) => Array.from(new Set(urls.slice(mark).filter(isTracking).map(hostOf))),
+    };
+    await use(api);
+  },
+};
+
+/**
+ * Fixture `ga`: every dataLayer push of every page in this test, in order, survives navigations.
+ * Tracking requests are recorded and stubbed (fixture `requests`), so no real hits are sent.
  */
 const test = base.extend({
-  ga: async ({ page }, use) => {
+  ...withRequests,
+  ga: async ({ page, requests }, use) => { // eslint-disable-line no-unused-vars
     const log = [];
     await page.exposeFunction('__scmRecord', (rec) => { log.push(rec); });
     await page.addInitScript(RECORDER);
-    await page.route(/googletagmanager\.com|google-analytics\.com|doubleclick\.net|facebook\.net|connect\.facebook/, (r) => r.abort());
     page.on('dialog', (d) => { log.push({ url: page.url(), entry: { dialog: d.message() } }); d.dismiss(); });
 
     const api = {
@@ -102,6 +136,8 @@ async function dismissBanner(page) {
     await btn.waitFor({ state: 'visible', timeout: 3000 });
     await btn.click();
     await page.locator('#scm-cookie-banner').waitFor({ state: 'hidden', timeout: 5000 }).catch(() => {});
+    // Basic mode: the tag mode is resolved by the grant, so wait for it before any test reads SCM_GCM.mode.
+    await page.waitForFunction(() => window.SCM_GCM && window.SCM_GCM.ready === true, null, { timeout: 5000 }).catch(() => {});
   } catch (e) { /* banner not shown (consent already stored) */ }
 }
 
@@ -151,8 +187,11 @@ async function fillGuest(page, email) {
 async function fillAddress(page) {
   const f = page.locator('.js-address-form');
   // The form defaults to another country; switching it re-renders the form via AJAX (Poland has no states).
-  await f.locator('select[name="id_country"]').selectOption({ label: 'Poland' });
-  await expect(f.locator('select[name="id_state"]')).toHaveCount(0);
+  // The change event can be lost when the page script is not bound yet: retry the switch until the re-render happened.
+  await expect(async () => {
+    await f.locator('select[name="id_country"]').selectOption({ label: 'Poland' });
+    await expect(f.locator('select[name="id_state"]')).toHaveCount(0, { timeout: 4000 });
+  }).toPass({ timeout: 40_000 });
   await f.locator('input[name="address1"]').fill('Testowa 1');
   await f.locator('input[name="postcode"]').fill('00-001');
   await f.locator('input[name="city"]').fill('Warszawa');

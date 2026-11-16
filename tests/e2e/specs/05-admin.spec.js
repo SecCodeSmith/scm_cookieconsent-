@@ -1,6 +1,6 @@
 // Task 3.5 - the back-office module configuration renders without Smarty/PHP errors
 // and shows the updated GA4 documentation (Integrations list, GTM how-to, GDPR help tab).
-const { test, expect } = require('./helpers');
+const { test, expect, sql } = require('./helpers');
 
 test.describe.configure({ mode: 'serial' });
 test.setTimeout(120_000);
@@ -64,4 +64,41 @@ test('Consent Mode tab: GTM how-to contains Krok 4 with the new triggers', async
 test('GDPR help tab renders without errors', async () => {
   const text = await openTab('rodo');
   expect(text.length).toBeGreaterThan(500);
+});
+
+// Tasks 3.3 / 4.1 (consent-mode-basic): basic-mode notice and checklist, 365-day limit.
+test('Integrations tab: basic-mode notice about scripts printed by other modules and the GTM checklist', async () => {
+  const text = await openTab('integrations');
+  expect(text).toMatch(/Tryb podstawowy Consent Mode/);
+  expect(text).toMatch(/inny moduł/);
+  expect(text).toMatch(/nie jest przez niego blokowany przed zgodą/);
+  expect(text).toMatch(/Lista kontrolna dla kontenera GTM/);
+  expect(text).toMatch(/Require additional consent/);
+});
+
+test('Settings tab: a lifetime of 400 days is refused, 365 is accepted; footer link switch is present', async () => {
+  await openTab('settings');
+  const input = page.locator('input[name="SCM_COOKIE_EXPIRY_DAYS"]');
+  expect(await input.getAttribute('max')).toBe('365');
+  await expect(page.locator('input[name="SCM_COOKIE_SHOW_FOOTER_LINK"]').first()).toHaveCount(1);
+
+  const before = sql("SELECT value FROM ps_configuration WHERE name='SCM_COOKIE_EXPIRY_DAYS'")[0][0];
+  await input.evaluate((el) => el.removeAttribute('max')); // bypass the browser check: the server must refuse
+  const privacy = page.locator('input[name="SCM_COOKIE_PRIVACY_URL"]');
+  if (!(await privacy.inputValue())) { await privacy.fill('/privacy-policy'); } // required field of the form
+  await input.fill('400');
+  await page.locator('button[name="submitScmSettings"]').click();
+  await page.waitForLoadState('load');
+  await expect(page.locator('.alert-danger').first()).toContainText(/365/);
+  expect(sql("SELECT value FROM ps_configuration WHERE name='SCM_COOKIE_EXPIRY_DAYS'")[0][0]).toBe(before);
+
+  const again = page.locator('input[name="SCM_COOKIE_EXPIRY_DAYS"]');
+  const privacy2 = page.locator('input[name="SCM_COOKIE_PRIVACY_URL"]');
+  if (!(await privacy2.inputValue())) { await privacy2.fill('/privacy-policy'); } // the failed save did not keep it
+  await again.fill('365');
+  await page.locator('button[name="submitScmSettings"]').click();
+  await page.waitForLoadState('load');
+  await expect(page.locator('.alert-success').first()).toBeVisible();
+  expect(sql("SELECT value FROM ps_configuration WHERE name='SCM_COOKIE_EXPIRY_DAYS'")[0][0]).toBe('365');
+  sql("UPDATE ps_configuration SET value='' WHERE name='SCM_COOKIE_PRIVACY_URL'"); // leave the shop as found
 });

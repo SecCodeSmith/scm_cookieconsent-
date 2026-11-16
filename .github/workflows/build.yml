@@ -28,9 +28,25 @@ jobs:
         shell: bash
         run: find . -name '*.php' -print0 | xargs -0 -n1 php -l
 
+  js-harness:
+    name: Bootstrap harness (Node)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      - name: Run the bootstrap scenarios
+        run: node tests/unit/gcm_bootstrap.harness.js
+
+      - name: Minified copy matches its source
+        run: node tests/unit/check-bootstrap-min.js
+
   build:
     name: Package module
-    needs: php-lint
+    needs: [php-lint, js-harness]
     # build.ps1 stages files with robocopy, which is Windows-only.
     runs-on: windows-latest
     steps:

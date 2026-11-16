@@ -45,6 +45,7 @@ Specs: `specs/ga4-ecommerce-events/spec.md`, `specs/ga4-user-events/spec.md`. Ap
 - [x] 6.2 Run `find . -name '*.php' -print0 | xargs -0 -n1 php -l` and `./build.ps1`. Verify: zero lint errors and a `dist/scm_cookieconsent-1.8.0.*.zip` listing `upgrade/upgrade-1.8.0.php`.
 - [x] 6.3 Run the full harness matrix (source bootstrap, minified bootstrap, `scm_ecommerce.js`, purchase template) in one invocation, plus a non-regression run comparing 1.7.0 and 1.8.0 for `view_cart`, `add_to_cart`, `begin_checkout`, `purchase` event names and order. Verify: every spec scenario reports PASS and the existing events keep their names and order.
 - [ ] 6.4 Manual staging check with GA4 DebugView (direct `gtag.js` mode) and GTM Preview (GTM mode) covering a full journey: category, filter, product click, combination switch, add to cart, delete line, checkout with voucher, carrier, payment, purchase, login, registration, search. Verify: record which events appeared in each mode; every spec event is present once with the expected key parameters.
+  - Note 2026-11-16: left open when the change was archived (owner's decision). Under Consent Mode "basic" (change consent-mode-basic, 1.9.0) this journey needs a visitor who granted analytics; it is carried by consent-mode-basic task 5.4.
 
 ## 7. Automated staging: Docker e2e suite
 

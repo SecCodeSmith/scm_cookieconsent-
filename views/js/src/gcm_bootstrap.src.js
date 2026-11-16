@@ -112,28 +112,39 @@
         }
     }
 
-    // === 6. Public update API — called by the banner after a user choice ===
-    window.SCM_GCM.update = function (storeObj) {
-        var payload = buildPayload(storeObj);
-        if (GCM.enabled) { gtag('consent', 'update', payload); }
-        applyMetaConsent(payload);
-        // Custom event for GTM triggers (fire tags on consent change)
-        window.dataLayer.push({ event: 'scm_consent_update', scm_consent: payload });
-    };
-
-    // === 7+8. Google tag injection — deferred to DOMContentLoaded ===
-    // This bootstrap is printed FIRST in <head>, so at execution time it
-    // cannot see snippets that other marketing modules print after it.
-    // Deferring to DOMContentLoaded lets the runtime dedup check observe the
-    // whole document: if another module already pulled gtm.js / gtag.js, we
-    // skip ours (consent default/update governs its tags anyway). Server-side
-    // "installed module" detection proved unreliable — an installed module is
-    // not necessarily an emitting one.
-    //
-    // The same pass resolves the ecommerce / Ads routing mode ONCE, then
-    // flushes any track()/purchase() calls queued before it ran (scm_ecommerce.js
-    // and the inline purchase snippet may execute earlier than DOMContentLoaded).
+    // === 6. Consent Mode "basic": tags load on a grant, events wait for it ===
+    // Nothing optional is requested until the visitor (or a stored choice) has granted a
+    // category that needs it (D1). Events raised earlier are kept in memory only: never
+    // pushed to the dataLayer, never stored, dropped on a reject or when the page is left (D3).
+    var ANY_TAG_SIGNALS = ['analytics_storage', 'ad_storage', 'ad_user_data', 'ad_personalization'];
+    var QUEUE_CAP = 100;
     var pending = [];
+    var onceMem = {};
+    var loaded = { gtm: false, gtagjs: false, ga4: false, ads: false };
+
+    function isGranted(payload, sig) { return payload[sig] === 'granted'; }
+
+    function tagGrant(payload) {
+        for (var i = 0; i < ANY_TAG_SIGNALS.length; i++) {
+            if (isGranted(payload, ANY_TAG_SIGNALS[i])) { return true; }
+        }
+        return false;
+    }
+
+    // Once-guard recorded at DELIVERY time (D4). Storage blocked: in-memory fallback.
+    function once(key) {
+        if (!key) { return true; }
+        try {
+            if (window.sessionStorage) {
+                if (window.sessionStorage.getItem(key)) { return false; }
+                window.sessionStorage.setItem(key, '1');
+                return true;
+            }
+        } catch (e) {}
+        if (onceMem[key]) { return false; }
+        onceMem[key] = true;
+        return true;
+    }
 
     function dispatchTrack(name, params) {
         if (window.SCM_GCM.mode.ecommerce === 'gtag') {
@@ -145,6 +156,8 @@
         }
     }
 
+    // The Ads conversion needs ad_storage (D5): mode.ads becomes 'gtag' only after the
+    // advertising grant has loaded the Ads config. In GTM mode the conversion is the container's.
     function dispatchPurchase(p) {
         dispatchTrack('purchase', p);
         if (window.SCM_GCM.mode.ads === 'gtag' && TAGS.adsId && TAGS.adsConversionLabel) {
@@ -172,96 +185,151 @@
         window.dataLayer.push(obj);
     }
 
-    window.SCM_GCM.event = function (name, params) {
-        params = params || {};
-        if (!window.SCM_GCM.ready) { pending.push(['event', name, params]); return; }
-        dispatchFlat(name, params);
+    // entry = [kind, a, b, guardKey]
+    function deliver(q) {
+        if (!once(q[3])) { return; }
+        if (q[0] === 'purchase') { dispatchPurchase(q[1]); }
+        else if (q[0] === 'event') { dispatchFlat(q[1], q[2]); }
+        else { dispatchTrack(q[1], q[2]); }
+    }
+
+    function submit(entry) {
+        if (window.SCM_GCM.ready) { deliver(entry); return; }
+        pending.push(entry);
+        if (pending.length > QUEUE_CAP) { pending.shift(); }
+    }
+
+    // Optional last argument = once-guard key (checked and recorded at delivery).
+    window.SCM_GCM.event = function (name, params, guardKey) {
+        submit(['event', name, params || {}, guardKey]);
     };
 
-    window.SCM_GCM.track = function (name, params) {
-        if (!window.SCM_GCM.ready) { pending.push(['track', name, params]); return; }
-        dispatchTrack(name, params);
+    window.SCM_GCM.track = function (name, params, guardKey) {
+        submit(['track', name, params, guardKey]);
     };
 
-    window.SCM_GCM.purchase = function (payload) {
-        if (!window.SCM_GCM.ready) { pending.push(['purchase', payload]); return; }
-        dispatchPurchase(payload);
+    window.SCM_GCM.purchase = function (payload, guardKey) {
+        submit(['purchase', payload, null, guardKey]);
     };
 
-    function finish(mode) {
-        window.SCM_GCM.mode = mode;
+    // A grant exists and its tag has been started: deliver the page's queued events in order.
+    function becomeReady() {
         window.SCM_GCM.ready = true;
         var queue = pending;
         pending = [];
-        queue.forEach(function (q) {
-            if (q[0] === 'purchase') { dispatchPurchase(q[1]); }
-            else if (q[0] === 'event') { dispatchFlat(q[1], q[2]); }
-            else { dispatchTrack(q[1], q[2]); }
-        });
+        queue.forEach(deliver);
     }
 
-    function loadGtagJs(id) {
-        var gs = document.createElement('script');
-        gs.async = true;
-        gs.src = 'https://www.googletagmanager.com/gtag/js?id=' + encodeURIComponent(id);
+    function loadScript(src) {
+        var s = document.createElement('script');
+        s.async = true;
+        s.src = src;
         var first = document.getElementsByTagName('script')[0];
-        first.parentNode.insertBefore(gs, first);
-        gtag('js', new Date());
+        first.parentNode.insertBefore(s, first);
     }
 
-    function injectGoogleTags() {
-        var mode = { ecommerce: 'none', ads: 'none' };
-        if (!GCM.enabled) { finish(mode); return; }
+    // Idempotent (D1): remembers what this page already loaded, requests gtag.js / gtm.js at
+    // most once and only adds a `config` for a newly granted id. With nothing granted it does
+    // nothing — no request, no cookie, no cookieless ping.
+    //
+    // Phases, so the tag sees the right consent state: (1) the script is requested,
+    // (2) `between` runs (the consent update), (3) the dataLayer commands that start the tag
+    // (`gtm.start`, `js`, `config`) are pushed. Both gtag.js and gtm.js read the dataLayer in
+    // order once loaded, so a `config` pushed before the update would be evaluated as denied.
+    function loadTags(payload, between) {
+        var cmds = [];
+        var mode = window.SCM_GCM.mode;
 
-        var hasGtm = !!window.google_tag_manager
-            || !!document.querySelector('script[src*="googletagmanager.com/gtm.js?"]');
-        var hasGtagScript = !!document.querySelector('script[src*="googletagmanager.com/gtag/js?"]');
-        var ownDirect = false;
+        if (GCM.enabled && tagGrant(payload)) {
+            var analytics = isGranted(payload, 'analytics_storage');
+            var ads       = isGranted(payload, 'ad_storage');
 
-        // GTM — the preferred path. No <noscript> iframe on purpose: without
-        // JS no consent can be given, so it would fire without a legal basis.
-        if (TAGS.gtmId && !hasGtm) {
-            (function (w, d, s, l, i) {
-                w[l] = w[l] || [];
-                w[l].push({ 'gtm.start': new Date().getTime(), event: 'gtm.js' });
-                var f = d.getElementsByTagName(s)[0], j = d.createElement(s);
-                j.async = true;
-                j.src = 'https://www.googletagmanager.com/gtm.js?id=' + encodeURIComponent(i);
-                f.parentNode.insertBefore(j, f);
-            })(window, document, 'script', 'dataLayer', TAGS.gtmId);
-            hasGtm = true;
+            // Runtime dedup: other modules print their snippets after this bootstrap, so
+            // the check runs here (DOMContentLoaded or later), not when the script executes.
+            var hasGtm = loaded.gtm || !!window.google_tag_manager
+                || !!document.querySelector('script[src*="googletagmanager.com/gtm.js?"]');
+
+            // GTM — the preferred path. No <noscript> iframe on purpose: without JS no
+            // consent can be given, so it would fire without a legal basis.
+            if (TAGS.gtmId && !hasGtm) {
+                loaded.gtm = true;
+                hasGtm = true;
+                loadScript('https://www.googletagmanager.com/gtm.js?id=' + encodeURIComponent(TAGS.gtmId));
+                cmds.push(function () {
+                    window.dataLayer.push({ 'gtm.start': new Date().getTime(), event: 'gtm.js' });
+                });
+            }
+
+            var directTag = function (id) {
+                if (!loaded.gtagjs) {
+                    loaded.gtagjs = true;
+                    loadScript('https://www.googletagmanager.com/gtag/js?id=' + encodeURIComponent(id));
+                    cmds.push(function () { gtag('js', new Date()); });
+                }
+                cmds.push(function () { gtag('config', id); });
+            };
+
+            if (hasGtm) {
+                mode.ecommerce = 'gtm';
+                mode.ads = 'container';
+            } else if ((TAGS.ga4Id || TAGS.adsId) && !TAGS.gtmId
+                && (loaded.gtagjs || !document.querySelector('script[src*="googletagmanager.com/gtag/js?"]'))) {
+                // gtag.js direct — FALLBACK ONLY when no GTM container exists at all.
+                // Each category adds only its own config: analytics -> GA4, advertising -> Ads.
+                if (analytics && TAGS.ga4Id && !loaded.ga4) { loaded.ga4 = true; directTag(TAGS.ga4Id); }
+                if (ads && TAGS.adsId && !loaded.ads)       { loaded.ads = true;  directTag(TAGS.adsId); }
+                if (loaded.ga4 || loaded.ads) { mode.ecommerce = 'gtag'; }
+                if (loaded.ads) { mode.ads = 'gtag'; }
+            }
+
+            // Ads-only direct tag — opt-in, works next to a container or an external
+            // gtag.js. Configures the AW id only (never GA4: no double-counting).
+            if (ads && !loaded.ads && TAGS.adsForceDirect && TAGS.adsId) {
+                loaded.ads = true;
+                directTag(TAGS.adsId);
+                mode.ads = 'gtag';
+            }
         }
 
-        if (hasGtm) {
-            mode.ecommerce = 'gtm';
-            mode.ads = 'container';
-        } else if ((TAGS.ga4Id || TAGS.adsId) && !TAGS.gtmId && !hasGtagScript) {
-            // gtag.js direct — FALLBACK ONLY when no GTM container exists at all.
-            // With GTM present, GA4/Ads tags belong in the container — loading
-            // gtag.js next to it double-counts.
-            loadGtagJs(TAGS.ga4Id || TAGS.adsId);
-            if (TAGS.ga4Id) { gtag('config', TAGS.ga4Id); }
-            if (TAGS.adsId) { gtag('config', TAGS.adsId); }
-            ownDirect = true;
-            mode.ecommerce = 'gtag';
-            mode.ads = TAGS.adsId ? 'gtag' : 'none';
-        }
+        if (between) { between(); }
+        cmds.forEach(function (c) { c(); });
+    }
 
-        // Ads-only direct tag — opt-in, works next to a container or an external
-        // gtag.js. Configures the AW id only (never GA4: no double-counting).
-        if (!ownDirect && TAGS.adsForceDirect && TAGS.adsId) {
-            loadGtagJs(TAGS.adsId);
-            gtag('config', TAGS.adsId);
-            mode.ads = 'gtag';
-        }
+    // === 7. Public update API — called by the banner after a user choice ===
+    // D2 order: tag requested, consent `update`, `scm_consent_update`, then the queue.
+    window.SCM_GCM.update = function (storeObj) {
+        var payload = buildPayload(storeObj);
+        var grant = tagGrant(payload);
+        var pushUpdate = function () { if (GCM.enabled) { gtag('consent', 'update', payload); } };
 
-        finish(mode);
+        if (grant) { loadTags(payload, pushUpdate); } else { pushUpdate(); }
+        applyMetaConsent(payload);
+        // Custom event for GTM triggers (fire tags on consent change)
+        window.dataLayer.push({ event: 'scm_consent_update', scm_consent: payload });
+
+        if (grant) {
+            becomeReady();
+        } else {
+            // Reject / withdrawal: nothing pending is ever delivered, later events wait again.
+            window.SCM_GCM.ready = false;
+            pending = [];
+        }
+    };
+
+    // === 8. Returning visitor with a stored grant — DOMContentLoaded ===
+    // The default and the update are already in the dataLayer (head); load the tag the stored
+    // choice allows, then deliver the events raised so far.
+    function startFromStored() {
+        if (tagGrant(initial)) {
+            loadTags(initial);
+            becomeReady();
+        }
     }
 
     if (document.readyState === 'loading') {
-        document.addEventListener('DOMContentLoaded', injectGoogleTags);
+        document.addEventListener('DOMContentLoaded', startFromStored);
     } else {
-        injectGoogleTags();
+        startFromStored();
     }
 
     // === 9. Returning visitor with stored consent → apply Meta immediately ===

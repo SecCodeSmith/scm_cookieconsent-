@@ -10,16 +10,17 @@ A professional cookie consent module for PrestaShop **1.7 / 8.x / 9.x** — comp
 | --- | --- |
 | ✅ | Granular consent per category (Essential, Analytics, Marketing, custom) |
 | ✅ | **Multilanguage out of the box: Polish, English, German, French** (other shop languages fall back to English); every text editable per language from the admin panel |
-| ✅ | Google Consent Mode v2 — `consent default` before any tags load, `consent update` after the user's choice |
-| ✅ | Automatic tag injection: **Google Tag Manager**, **Google Analytics 4**, **Google Ads** (gtag.js) — gated by Consent Mode |
+| ✅ | Google Consent Mode v2 in **basic mode** (1.9.0) — `consent default` (all denied) is recorded, but no Google tag is requested until the visitor grants a category; `consent update` follows the choice |
+| ✅ | Automatic tag injection: **Google Tag Manager**, **Google Analytics 4**, **Google Ads** (gtag.js) — requested only after the matching consent, never before |
 | ✅ | **Google Ads purchase conversions** sent by the module itself (`conversion` event with `send_to`, value, currency, transaction_id) — in direct `gtag.js` mode, or alongside GTM with an opt-in switch |
 | ✅ | **Meta Pixel** loaded only after marketing consent (`ad_storage=granted`) — zero requests to Meta before consent; `fbq consent grant/revoke` |
 | ✅ | `scm_consent_update` dataLayer event after every consent change — ready-made GTM trigger |
 | ✅ | **Full GA4 recommended event set** for shops: product lists and clicks, product views, cart, checkout steps (shipping, payment), purchase with vouchers, login, sign-up and search — no personal data |
 | ✅ | Three banner positions: bottom bar, centered modal, bottom-left panel |
 | ✅ | Active cookie removal on rejection (wildcard `*` support) |
-| ✅ | Configurable consent lifetime (default 365 days), JSON `scm_consent` cookie with `SameSite=Lax` |
-| ✅ | Reopen widget + "change settings later" link |
+| ✅ | Configurable consent lifetime (default and maximum 365 days), JSON `scm_consent` cookie with `SameSite=Lax` |
+| ✅ | Reopen widget + a text link "Zmień ustawienia cookies" in the footer of every page (`SCM_COOKIE_SHOW_FOOTER_LINK`, on by default) |
+| ✅ | Two-screen banner (1.9.0): a short first screen with three buttons ("Akceptuję wszystkie" filled, "Ustawienia cookies" and "Odrzuć opcjonalne" outlined; accept and reject are exactly the same size) and a settings screen with one expandable card and switch per category ("Wróć", "Zapisz wybór", "Akceptuję wszystkie"). Bottom sheet on phones, card docked to the bottom centre from 768 px. Optional switches never start on |
 | ✅ | No pre-checked optional toggles (GDPR art. 4(11) compliant) |
 | ✅ | Editable brand colors (HEX) with live preview |
 | ✅ | Legal footer with GDPR art. 6(1)(a) legal basis, data subject rights and the right to lodge a complaint |
@@ -92,18 +93,41 @@ The one hook the module cannot route around is `displayOrderConfirmation` (used 
 
 ## Google Consent Mode v2
 
-The module automatically calls:
+The module uses Consent Mode **basic** (since 1.9.0): the `default` command is only a record on the page, and **no Google tag is requested until the visitor has granted a category that needs it**. It calls:
 
 ```js
-gtag('consent', 'default', { analytics_storage: 'denied', ad_storage: 'denied', ... });  // before the choice
+gtag('consent', 'default', { analytics_storage: 'denied', ad_storage: 'denied', ... });  // always first, not a request
+// ... nothing is requested before a grant ...
 gtag('consent', 'update',  { analytics_storage: 'granted', ... });                       // after the choice
 ```
 
-**Important:** if you enter IDs in the **Integrations** tab, the module injects the tags itself directly **after** the `default` signal — do not add the same tags manually. **GTM is the preferred path**: when a GTM container is configured (your own or from an external marketing module), direct `gtag.js` (GA4/Ads) is NOT loaded — configure GA4/Ads tags inside the GTM container instead. Direct `gtag.js` works only as a fallback when no GTM container exists.
+**Important:** if you enter IDs in the **Integrations** tab, the module loads the tags itself, and only after a grant — do not add the same tags manually. **GTM is the preferred path**: when a GTM container is configured (your own or from an external marketing module), direct `gtag.js` (GA4/Ads) is NOT loaded — configure GA4/Ads tags inside the GTM container instead. Direct `gtag.js` works only as a fallback when no GTM container exists.
+
+### Banner colours
+
+The banner takes its colours from the **Appearance** tab: the *primary* colour fills the main button, the switches that are on, the icon and the keyboard focus rings; the *accent* colour is the always-on (necessary) switch. The text on the filled button is chosen automatically (white or near black) for at least 4.5:1 contrast. Example, a navy brand: primary `#004b87` and accent `#146c43` (`SCM_COOKIE_COLOR_PRIMARY` and `SCM_COOKIE_COLOR_ACCENT`). Pick a dark primary: a light one cannot give readable outlines and links.
+
+### What loads when (basic mode, 1.9.0)
+
+| Visitor state | Direct mode (no GTM id) | GTM mode (container id set) |
+| --- | --- | --- |
+| No choice yet, banner closed or ignored, or optional rejected | nothing requested, no `_ga*`/`_gcl*` cookie | nothing requested |
+| Analytics granted | `gtag.js` + GA4 `config` only | `gtm.js` container |
+| Advertising granted | Ads `config`, Ads conversion, Meta Pixel | `gtm.js` container |
+| Any of `analytics_storage`, `ad_storage`, `ad_user_data`, `ad_personalization` granted | the rows above, per category | `gtm.js` container |
+| Consent withdrawn | `consent update` with the signal denied, cookies of that category removed, no tag from the next page on | same |
+
+A returning visitor with a stored grant gets the tag on every page without a click. Closing the banner (X, Escape, backdrop) on a first visit stores "optional rejected" and requests nothing.
+
+**Events before a grant.** The module's GA4 events (`view_item`, `add_to_cart`, `begin_checkout`, `add_shipping_info`, `add_payment_info`, `purchase`, ...) raised while no grant exists are held **in page memory only**: never pushed to the `dataLayer`, never written to cookies or storage, and discarded on a reject or when the visitor leaves the page. After a grant on the current page the module (1) requests the tag, (2) pushes the `consent update`, (3) pushes the tag start commands, (4) pushes `scm_consent_update`, and (5) delivers the held events, each once and in the order raised. The once-per-order and once-per-step guards (`purchase`, `add_shipping_info`, `begin_checkout`, login/sign-up) are recorded at delivery, so reloading the confirmation page before choosing does not lose the purchase.
+
+**Measurement effect (owner decision, 2026-11-15).** With basic mode GA4 and Google Ads see only visitors who accepted; there is no cookieless ping and no modelled data for those who refused or ignored the banner. Expect lower GA4 and Ads figures from the day 1.9.0 goes live. The shop's own order tables remain the reference for revenue. The Ads purchase conversion is sent only with advertising consent (analytics alone delivers the GA4 `purchase` but not the conversion).
+
+**Container checklist (GTM mode).** The module can promise that `gtm.js` is not requested without a grant. After an analytics-only grant the container is loaded and runs the tags inside it, so in the container set *Advanced Settings -> Consent Settings -> Require additional consent* to `analytics_storage` for GA4 tags and to `ad_storage` (plus `ad_user_data` and `ad_personalization` for Google Ads) for Ads and remarketing tags; otherwise such a tag can still send a cookieless ping. "Analytics-only loads no Ads tag" is guaranteed by the module in direct mode only. A container or tag printed by **another module** is not gated by this module at all (see below).
 
 ### Google tag modes and event routing (1.7.0)
 
-At `DOMContentLoaded` the head bootstrap decides which Google tag it actually ended up with and exposes the result as `window.SCM_GCM.mode`:
+Once a grant has started a tag, the head bootstrap decides which Google tag it ended up with and exposes the result as `window.SCM_GCM.mode` (`ready` becomes true at the same moment). With no grant both targets stay `none`:
 
 | Situation | `mode.ecommerce` | `mode.ads` |
 | --- | --- | --- |
@@ -111,13 +135,13 @@ At `DOMContentLoaded` the head bootstrap decides which Google tag it actually en
 | GTM container present, direct-send switch on | `gtm` | `gtag` |
 | No container — module loaded `gtag.js` itself | `gtag` | `gtag` (or `none` without an Ads ID) |
 | External `gtag.js` only, direct-send on | `none` | `gtag` |
-| Consent Mode disabled / nothing configured | `none` | `none` |
+| Consent Mode disabled / nothing configured / no grant yet | `none` | `none` |
 
 All ecommerce events go through one entry point, `window.SCM_GCM.track(name, params)`, and the purchase through `window.SCM_GCM.purchase(payload)`:
 
 - `mode.ecommerce === 'gtag'` → events are sent as `gtag('event', name, params)`, so GA4 (and Ads remarketing) receive them. Before 1.7.0 they were silently dropped in this mode.
 - `mode.ecommerce === 'gtm'` or `'none'` → the **unchanged** dataLayer contract: `dataLayer.push({ ecommerce: null })` followed by `dataLayer.push({ event: name, ecommerce: params })`. Existing GTM triggers keep working.
-- Calls made before the mode is resolved (the inline purchase script runs during HTML parsing) are queued and flushed in order right after resolution.
+- Calls made before a grant (the inline purchase script runs during HTML parsing) are queued in memory, capped at the newest 100 entries, and flushed in order after the grant has started its tag. `track`, `event` and `purchase` accept an optional last argument, a once-guard key recorded at delivery.
 - If the bootstrap is missing on a page, `scm_ecommerce.js` and the purchase template fall back to the dataLayer object pair.
 - Non-ecommerce events (`login`, `sign_up`, `search`, since 1.8.0) go through `window.SCM_GCM.event(name, params)`. It uses the same mode and queue, but in GTM/none mode it pushes **one flat object** — `dataLayer.push({ event: 'login', method: 'PrestaShop' })` — with no `ecommerce` key and no `{ ecommerce: null }` reset.
 
@@ -160,7 +184,7 @@ Supported Consent Mode signals: `analytics_storage`, `ad_storage`, `ad_user_data
 
 If another module already injects Google tags (e.g. **TagConcierge GTM**, **PS Marketing with Google**, Google Analytics modules), this module automatically:
 
-1. **Does not load a second container** — it detects active marketing modules (and an existing `gtm.js`/`gtag.js` script in the DOM) and skips its own GTM/GA4/Ads injection; a warning is shown in the admin panel.
+1. **Does not load a second container** — when it is about to load (after a grant) it detects an existing `gtm.js`/`gtag.js` script in the DOM and skips its own GTM/GA4/Ads injection; a warning is shown in the admin panel. **Basic mode applies to scripts printed by this module only:** a container or tag printed by another module is not blocked before consent — disable its loading or configure it to wait for the `scm_consent_update` event.
 2. **Places itself first in the `displayHeader` hook** — the `consent default` signal is emitted before the external module's GTM snippet.
 3. **For returning visitors it sends `consent update` already in `<head>`** — `update` takes precedence over any later external `consent default`, so the saved choice is never overwritten.
 4. **Resolves the tag mode at runtime** (`window.SCM_GCM.mode`) and routes ecommerce events accordingly — an external container keeps receiving the unchanged `{ event, ecommerce }` dataLayer pushes.
@@ -198,7 +222,7 @@ The GA4 `purchase` event is still sent separately. Both are sent at most once pe
 
 **With a GTM container** the module stays hands-off by default: build the Ads conversion tag inside GTM with a *Custom Event* trigger on `purchase` and map `ecommerce.value`, `ecommerce.currency`, `ecommerce.transaction_id` from the data layer. If you prefer the module to send conversions itself, switch on *send Ads conversions directly from the module* — the module then loads `gtag.js` for the `AW-` ID next to the container and fires the conversion — and **remove the conversion tag from GTM**. Exactly one of the two must own the tag, otherwise every order is counted twice; the Integrations status table shows which one currently does.
 
-**Consent:** the conversion event is submitted regardless of the visitor's choice; Consent Mode v2 decides what the Google tag does with it. With marketing consent denied the tag sends a cookieless, modelled ping (no advertising cookies), exactly as for pageviews. With Consent Mode disabled no Google tag is loaded at all, so nothing is sent.
+**Consent:** the conversion event is sent only when `ad_storage` is granted (since 1.9.0). With analytics granted and marketing not granted, the GA4 `purchase` is delivered and the conversion is not; in GTM mode the conversion belongs to the container (use the checklist above). With Consent Mode disabled no Google tag is loaded at all, so nothing is sent.
 
 ## Configuration keys (`Configuration`)
 
@@ -208,9 +232,10 @@ The GA4 `purchase` event is still sent separately. Both are sent at most once pe
 | `SCM_COOKIE_COMPANY_ADDRESS` | *(empty)* |
 | `SCM_COOKIE_COMPANY_EMAIL` | shop e-mail from PrestaShop |
 | `SCM_COOKIE_PRIVACY_URL` | *(empty)* |
-| `SCM_COOKIE_EXPIRY_DAYS` | `365` |
+| `SCM_COOKIE_EXPIRY_DAYS` | `365` (1-365; an older, larger value is reduced to 365 by the 1.9.0 upgrade) |
 | `SCM_COOKIE_POSITION` | `bottom` |
 | `SCM_COOKIE_SHOW_REOPEN` | `1` |
+| `SCM_COOKIE_SHOW_FOOTER_LINK` | `1` (text link "Zmień ustawienia cookies" on every page; hides the round reopen button at every width) |
 | `SCM_COOKIE_COLOR_PRIMARY` | `#2fb5d2` |
 | `SCM_COOKIE_COLOR_ACCENT` | `#69b92d` |
 | `SCM_COOKIE_GTM_ID` | *(empty — GTM disabled)* |
@@ -270,7 +295,7 @@ npx terser views/js/src/gcm_bootstrap.src.js -c -m   # paste the result into {li
 | `actionAuthentication` | marks a pending GA4 `login` event for the next page (only the event name is stored in the PrestaShop cookie) |
 | `actionCustomerAccountAdd` | marks a pending GA4 `sign_up` event for the next page (skipped for guest accounts) |
 
-The three banner-rendering hooks all call the same internal `renderBannerAndEcommerce()` method, which renders the banner exactly once per page even if a theme fires more than one of them.
+The three banner-rendering hooks all call the same internal `renderBannerAndEcommerce()` method, which renders the banner (and the footer link) exactly once per page even if a theme fires more than one of them.
 
 ## Disclaimer
 

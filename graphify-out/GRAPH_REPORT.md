@@ -1,17 +1,17 @@
-# Graph Report - scm_cookieconsent-motion  (2026-11-16)
+# Graph Report - scm_cookieconsent-  (2026-11-16)
 
 ## Corpus Check
-- 48 files · ~82,054 words
+- 56 files · ~91,074 words
 - Verdict: corpus is large enough that graph structure adds value.
-- Unclassified: 13 file(s) not represented in the graph (top: (none) 6, .tpl 5, .css 2)
+- Unclassified: 12 file(s) not represented in the graph (top: (none) 5, .tpl 5, .css 2)
 
 ## Summary
-- 612 nodes · 1099 edges · 34 communities (27 shown, 7 thin omitted)
-- Extraction: 86% EXTRACTED · 14% INFERRED · 0% AMBIGUOUS · INFERRED: 155 edges (avg confidence: 0.92)
+- 896 nodes · 1362 edges · 54 communities (40 shown, 14 thin omitted)
+- Extraction: 86% EXTRACTED · 14% INFERRED · 0% AMBIGUOUS · INFERRED: 189 edges (avg confidence: 0.93)
 - Token cost: 0 input · 0 output
 
 ## Graph Freshness
-- Built from commit: `4e4c79da`
+- Built from commit: `a4e3711d`
 - Run `git rev-parse HEAD` and compare to check if the graph is stale.
 - Run `graphify update .` after code changes (no API cost).
 
@@ -22,95 +22,103 @@
 - openspec-apply-change skill
 - scm_cookieconsent.min.js
 - scm_ecommerce.js
-- gcm_bootstrap.src.js head bootstrap (SCM_GCM)
+- terser minification build step
 - ADDED Requirements
 - Polish cookie consent modal screenshot (banner-modal-pl.png)
 - Project logo (glowing hammer over Matrix-style binary rain)
 - cookie-bite.svg
 - gcm_bootstrap.src.js
 - login
-- ADDED Requirements
+- Requirements
 - ADDED Requirements
 - package.json
-- Proposal
+- ADDED Requirements
 - stack.sh
 - .getDefaultTexts
-- Proposal: Google Ads conversion tracking
+- .getAllConfig
 - helpers.js
-- README.md (scm_cookieconsent)
-- Spec: google-ads-conversion-tracking
-- Google Consent Mode v2
-- scm_ecommerce.js ecommerce event pushes
+- scm_cookieconsent PrestaShop module
+- Requirements
+- Requirements
+- renderBannerAndEcommerce
+- Requirements
 - graphify knowledge graph workflow
 - 04-account.spec.js
 - sql
 - scm_cookieconsent - end-to-end tests (Playwright)
-- gcm_bootstrap.harness.js
+- ADDED Requirements
+- Requirements
+- ADDED Requirements
+- .buildEcommercePageData
+- ADDED Requirements
+- Tasks
+- Decisions
+- Requirements
+- .renderBannerAndEcommerce
+- Requirement: Tag mode resolution
+- .install
+- Proposal
+- Proposal
+- Proposal
+- Design
+- Requirement: Consent handling for conversions
+- ga4-user-events Specification
+- OpenSpec config (spec-driven schema)
 
 ## God Nodes (most connected - your core abstractions)
 1. `Scm_Cookieconsent` - 59 edges
-2. `login()` - 21 edges
-3. `Proposal: Google Ads conversion tracking` - 19 edges
-4. `Tasks: implementation checklist` - 19 edges
+2. `login()` - 33 edges
+3. `currency()` - 16 edges
+4. `config()` - 15 edges
 5. `ADDED Requirements` - 15 edges
-6. `sql()` - 14 edges
-7. `mapItem()` - 14 edges
-8. `ADDED Requirements` - 14 edges
+6. `Requirements` - 15 edges
+7. `sql()` - 14 edges
+8. `mapItem()` - 14 edges
 9. `ADDED Requirements` - 14 edges
-10. `Design: Ads conversion and mode-aware routing (D1-D7)` - 14 edges
+10. `ADDED Requirements` - 14 edges
 
 ## Surprising Connections (you probably didn't know these)
-- `Impact` --references--> `go()`  [INFERRED]
-  openspec/changes/consent-mode-basic/proposal.md → tests/e2e/specs/helpers.js
-- `D8. Retention` --references--> `readConsentStore()`  [INFERRED]
-  openspec/changes/consent-mode-basic/design.md → views/js/scm_cookieconsent.js
-- `D1 — `SCM_GCM.event(name, params)` for non-ecommerce events` --references--> `pushUserEvent()`  [INFERRED]
-  openspec/changes/complete-ga4-ecommerce-measurement/design.md → views/js/scm_ecommerce.js
-- `2. Loading, queue and update order (bootstrap)` --references--> `config()`  [INFERRED]
-  openspec/changes/consent-mode-basic/tasks.md → tests/e2e/specs/01-upgrade.spec.js
-- `Context` --references--> `login()`  [INFERRED]
-  openspec/changes/complete-ga4-ecommerce-measurement/design.md → tests/e2e/specs/04-account.spec.js
+- `D7 — Verification without a test suite` --references--> `config()`  [INFERRED]
+  openspec/changes/archive/2026-11-16-add-google-ads-conversion-tracking/design.md → tests/e2e/specs/01-upgrade.spec.js
+- `Scenario: Direct Ads tag with own GTM` --references--> `config()`  [INFERRED]
+  openspec/changes/archive/2026-11-16-add-google-ads-conversion-tracking/specs/google-tag-integration/spec.md → tests/e2e/specs/01-upgrade.spec.js
+- `Scenario: Direct gtag.js fallback` --references--> `config()`  [INFERRED]
+  openspec/changes/archive/2026-11-16-add-google-ads-conversion-tracking/specs/google-tag-integration/spec.md → tests/e2e/specs/01-upgrade.spec.js
+- `Scenario: Direct Ads tag with own GTM` --references--> `config()`  [INFERRED]
+  openspec/specs/google-tag-integration/spec.md → tests/e2e/specs/01-upgrade.spec.js
+- `Scenario: Direct gtag.js fallback` --references--> `config()`  [INFERRED]
+  openspec/specs/google-tag-integration/spec.md → tests/e2e/specs/01-upgrade.spec.js
 
 ## Import Cycles
 - None detected.
 
 ## Hyperedges (group relationships)
-- **Ads purchase conversion flow** — openspec_changes_add_google_ads_conversion_tracking_design_purchase_template, openspec_changes_add_google_ads_conversion_tracking_design_gcm_bootstrap, openspec_changes_add_google_ads_conversion_tracking_specs_google_ads_conversion_tracking_spec_purchase_conversion, openspec_changes_add_google_ads_conversion_tracking_specs_google_ads_conversion_tracking_spec_per_order_dedup [EXTRACTED 0.95]
 - **Banner rendering on three fallback hooks** — readme_theme_independence, readme_renderbannerandecommerce, readme_banner_reparenting [EXTRACTED 0.95]
 - **Cookie consent categories in modal** — docs_banner_modal_pl_necessary_cookies, docs_banner_modal_pl_analytics_cookies, docs_banner_modal_pl_marketing_cookies [EXTRACTED 1.00]
-- **Mode-aware Google tag event routing flow** — openspec_changes_add_google_ads_conversion_tracking_design_gcm_bootstrap, openspec_changes_add_google_ads_conversion_tracking_specs_google_tag_integration_spec_tag_mode_resolution, openspec_changes_add_google_ads_conversion_tracking_specs_google_tag_integration_spec_event_routing, openspec_changes_add_google_ads_conversion_tracking_specs_google_tag_integration_spec_pending_queue [EXTRACTED 1.00]
 - **Shared store selection and project check preamble** — _claude_skills_openspec_apply_change_skill_store_selection, _claude_skills_openspec_apply_change_skill_project_check, _claude_skills_openspec_apply_change_skill_openspec_cli [INFERRED 0.85]
 - **OpenSpec change lifecycle workflow** — _claude_skills_openspec_explore_skill, _claude_skills_openspec_propose_skill, _claude_skills_openspec_update_change_skill, _claude_skills_openspec_apply_change_skill, _claude_skills_openspec_sync_specs_skill, _claude_skills_openspec_archive_change_skill [INFERRED 0.95]
 
-## Communities (34 total, 7 thin omitted)
-
-### Community 0 - "Scm_Cookieconsent"
-Cohesion: 0.05
-Nodes (25): Context, D1 — `SCM_GCM.event(name, params)` for non-ecommerce events, D2 — Item builders: `buildGa4Item()` in PHP, `mapItem()` in JS, same output, D3 — Lists: server payload on load, `updateProductList` on AJAX, delegated click for `select_item`, D4 — `view_item` on combination change, D6 — Account events via the Context cookie, D7 — Search event and safe JSON, D8 — Version and upgrade (+17 more)
+## Communities (54 total, 14 thin omitted)
 
 ### Community 1 - "06-consent-basic.spec.js"
 Cohesion: 0.09
 Nodes (12): bannerVisible(), categoryOf(), choose(), DESKTOP, FIRST_DESKTOP, FIRST_PHONE, MODES, PHONE (+4 more)
 
 ### Community 2 - "scm_cookieconsent.js"
-Cohesion: 0.11
-Nodes (40): Context, acceptAll(), afterMotion(), applyToggleState(), collapseAll(), deleteCookie(), dismissBanner(), finalizeConsent() (+32 more)
+Cohesion: 0.10
+Nodes (41): Context, D8. Retention, acceptAll(), afterMotion(), applyToggleState(), collapseAll(), deleteCookie(), dismissBanner() (+33 more)
 
 ### Community 3 - "openspec-apply-change skill"
 Cohesion: 0.16
 Nodes (20): openspec-apply-change skill, openspec CLI, Project check (root null handling), Store selection (--store flag), Task implementation loop, openspec-archive-change skill, Archive move to dated directory, Artifact and task completion checks (+12 more)
 
 ### Community 4 - "scm_cookieconsent.min.js"
-Cohesion: 0.20
-Nodes (24): a(), b(), C(), d(), E(), G(), h(), I() (+16 more)
+Cohesion: 0.11
+Nodes (28): minify(), norm(), boot(), makeStorage(), a(), b(), C(), d() (+20 more)
 
 ### Community 5 - "scm_ecommerce.js"
 Cohesion: 0.16
 Nodes (35): 2. Loading, queue and update order (bootstrap), cartId(), cartItems(), cartPayload(), currency(), dl(), emitList(), firePageEvents() (+27 more)
-
-### Community 6 - "gcm_bootstrap.src.js head bootstrap (SCM_GCM)"
-Cohesion: 0.18
-Nodes (9): gcm_bootstrap.src.js head bootstrap (SCM_GCM), Node bootstrap test harness (D7), ecommerce_purchase.tpl de-dup owner (D4), Per-order de-duplication requirement, Spec: google-tag-integration, Ecommerce event routing by mode, Pre-resolution event queue, Routing fallback without bootstrap (+1 more)
 
 ### Community 7 - "ADDED Requirements"
 Cohesion: 0.05
@@ -125,16 +133,16 @@ Cohesion: 1.00
 Nodes (3): Project logo (glowing hammer over Matrix-style binary rain), Hammer motif (smith/forge branding), Green binary code rain (hacker/security aesthetic)
 
 ### Community 11 - "gcm_bootstrap.src.js"
-Cohesion: 0.11
-Nodes (31): D5 — Checkout: server-detected shipping, client-detected payment, D1. Tag loading moves from "every page" to "on a grant", in one function, D2. Order after a grant: tag, update, then events, D3. The queue stays in memory; the dataLayer sees nothing before a grant, D4. Once-guards at delivery, D5. Ads conversion needs `ad_storage`, D6. GTM mode: what the module can and cannot promise, D8. Retention (+23 more)
+Cohesion: 0.08
+Nodes (38): 1. Head bootstrap — tag mode, event routing, Ads conversion (`views/js/src/gcm_bootstrap.src.js`), 2. Ecommerce callers use the entry point with a safe fallback, 4. Version bump and upgrade path, 5. Integration verification, Tasks, Workflow follow-up, D1. Tag loading moves from "every page" to "on a grant", in one function, D2. Order after a grant: tag, update, then events (+30 more)
 
 ### Community 13 - "login"
-Cohesion: 0.07
-Nodes (36): Capabilities, Impact, Modified Capabilities, New Capabilities, Proposal, What Changes, Why, ADDED Requirements (+28 more)
+Cohesion: 0.23
+Nodes (15): Requirement: Delivery path for user events, Requirement: Login event, Scenario: Login in direct gtag.js mode, Scenario: Login in GTM mode, Scenario: Page reloaded after login, Scenario: Successful login, Scenario: Wrong password, Requirement: Delivery path for user events (+7 more)
 
-### Community 15 - "ADDED Requirements"
+### Community 15 - "Requirements"
 Cohesion: 0.05
-Nodes (40): ADDED Requirements, Purpose, Requirement: A grant loads the tag, then updates consent, then delivers queued events, Requirement: Ads conversion only after advertising consent, Requirement: Checkout events are sent once per order, Requirement: Consent Mode default does not trigger a request, Requirement: Each category loads only the tag it allows in direct mode, Requirement: GTM container mode (+32 more)
+Nodes (41): ga4-ecommerce-events Specification, Purpose, Requirement: Cart and checkout start, Requirement: Cart change events, Requirement: Consistent item variant, Requirement: Event value and currency, Requirement: Existing ecommerce contract preserved, Requirement: Item payload shape (+33 more)
 
 ### Community 16 - "ADDED Requirements"
 Cohesion: 0.05
@@ -144,37 +152,37 @@ Nodes (40): ADDED Requirements, Purpose, Requirement: Banner motion on opening a
 Cohesion: 0.15
 Nodes (11): @playwright/test, terser, description, devDependencies, @playwright/test, terser, name, private (+3 more)
 
-### Community 18 - "Proposal"
-Cohesion: 0.25
-Nodes (7): Capabilities, Impact, Modified Capabilities, New Capabilities, Proposal, What Changes, Why
+### Community 18 - "ADDED Requirements"
+Cohesion: 0.05
+Nodes (40): ADDED Requirements, Purpose, Requirement: A grant loads the tag, then updates consent, then delivers queued events, Requirement: Ads conversion only after advertising consent, Requirement: Checkout events are sent once per order, Requirement: Consent Mode default does not trigger a request, Requirement: Each category loads only the tag it allows in direct mode, Requirement: GTM container mode (+32 more)
 
 ### Community 19 - "stack.sh"
 Cohesion: 0.54
 Nodes (7): cache_clear(), console(), stack.sh script, shop_exec(), sql(), sync_module(), wait_shop()
 
-### Community 21 - "Proposal: Google Ads conversion tracking"
-Cohesion: 0.26
-Nodes (7): Design: Ads conversion and mode-aware routing (D1-D7), add-google-ads-conversion-tracking change metadata, Proposal: Google Ads conversion tracking, Tasks: implementation checklist, D10. Release, 3. Banner and footer link, OpenSpec config (spec-driven schema)
+### Community 21 - ".getAllConfig"
+Cohesion: 0.41
+Nodes (6): Context, D5 — Settings and payload plumbing, Impact, 3. Settings, validation and admin UI (`scm_cookieconsent.php`, `views/templates/admin/configure.tpl`), D10. Release, 3. Banner and footer link
 
 ### Community 22 - "helpers.js"
-Cohesion: 0.18
-Nodes (18): 1. Request log and failing tests first, Helpers (`specs/helpers.js`), { test, expect, setMode, sql, go, createVoucher, addToCart, fillGuest, fillAddress, chooseCarrier }, journey(), addToCart(), chooseCarrier(), createVoucher(), dismissBanner() (+10 more)
+Cohesion: 0.17
+Nodes (18): Helpers (`specs/helpers.js`), Notes, { test, expect, setMode, sql, go, createVoucher, addToCart, fillGuest, fillAddress, chooseCarrier }, journey(), addToCart(), chooseCarrier(), createVoucher(), dismissBanner() (+10 more)
 
-### Community 23 - "README.md (scm_cookieconsent)"
-Cohesion: 0.20
-Nodes (9): Build GitHub Actions workflow, Package module job (build.ps1), php-lint job (PHP 7.4 and 8.3), New config keys ADS_CONVERSION_LABEL / ADS_FORCE_DIRECT (D5), upgrade-1.7.0.php seeding (D6), README.md (scm_cookieconsent), SCM_COOKIE_* Configuration keys, Cookie categories (DB tables) (+1 more)
+### Community 23 - "scm_cookieconsent PrestaShop module"
+Cohesion: 0.12
+Nodes (11): Build GitHub Actions workflow, Package module job (build.ps1), php-lint job (PHP 7.4 and 8.3), README.md (scm_cookieconsent), SCM_COOKIE_* Configuration keys, Cookie categories (DB tables), Coexistence with external marketing modules (GTM/TagConcierge), Google Consent Mode v2 (+3 more)
 
-### Community 24 - "Spec: google-ads-conversion-tracking"
-Cohesion: 0.29
-Nodes (6): Spec: google-ads-conversion-tracking, Consent handling for conversions requirement, Purchase conversion event requirement, Conversion settings, admin status and save-time warnings, Tag mode resolution (ecommerce and ads targets), Integrations tab configure.tpl and saveIntegrations() changes
+### Community 24 - "Requirements"
+Cohesion: 0.05
+Nodes (40): consent-banner-choices Specification, Purpose, Requirement: Banner motion on opening and closing, Requirement: Banner motion on screen switch and cards, Requirement: Every entry point opens the first screen, Requirement: Optional categories start switched off, Requirement: Reduced motion is instant, Requirement: Rejecting is as easy as accepting (+32 more)
 
-### Community 25 - "Google Consent Mode v2"
-Cohesion: 0.40
-Nodes (5): Container precedence and runtime de-duplication, Coexistence with external marketing modules (GTM/TagConcierge), Google Consent Mode v2, Meta Pixel consent-gated integration, scm_consent_update dataLayer event
+### Community 25 - "Requirements"
+Cohesion: 0.05
+Nodes (40): consent-gated-tag-loading Specification, Purpose, Requirement: A grant loads the tag, then updates consent, then delivers queued events, Requirement: Ads conversion only after advertising consent, Requirement: Checkout events are sent once per order, Requirement: Consent Mode default does not trigger a request, Requirement: Each category loads only the tag it allows in direct mode, Requirement: GTM container mode (+32 more)
 
-### Community 26 - "scm_ecommerce.js ecommerce event pushes"
-Cohesion: 0.40
-Nodes (3): scm_ecommerce.js ecommerce event pushes, displayOrderConfirmation GA4 purchase hook, renderBannerAndEcommerce()
+### Community 27 - "Requirements"
+Cohesion: 0.06
+Nodes (30): google-tag-integration Specification, Purpose, Requirement: Ads-only direct tag alongside a container, Requirement: Container precedence, Requirement: Ecommerce event routing by mode, Requirement: Google tags load only when Consent Mode is enabled, Requirement: Pre-resolution event queue, Requirement: Routing fallback without the bootstrap (+22 more)
 
 ### Community 30 - "04-account.spec.js"
 Cohesion: 0.16
@@ -185,32 +193,92 @@ Cohesion: 0.31
 Nodes (9): 7. Automated staging: Docker e2e suite, hooks(), NEW_HOOKS, { test, expect, stack, sql }, version(), setMode(), sql(), stack() (+1 more)
 
 ### Community 32 - "scm_cookieconsent - end-to-end tests (Playwright)"
-Cohesion: 0.33
-Nodes (5): Notes, Prerequisites, Running, scm_cookieconsent - end-to-end tests (Playwright), What each spec covers
+Cohesion: 0.40
+Nodes (4): Prerequisites, Running, scm_cookieconsent - end-to-end tests (Playwright), What each spec covers
 
-### Community 33 - "gcm_bootstrap.harness.js"
-Cohesion: 0.19
-Nodes (4): minify(), norm(), boot(), makeStorage()
+### Community 33 - "ADDED Requirements"
+Cohesion: 0.07
+Nodes (29): ADDED Requirements, Purpose, Requirement: Ads-only direct tag alongside a container, Requirement: Container precedence, Requirement: Ecommerce event routing by mode, Requirement: Google tags load only when Consent Mode is enabled, Requirement: Pre-resolution event queue, Requirement: Routing fallback without the bootstrap (+21 more)
+
+### Community 34 - "Requirements"
+Cohesion: 0.07
+Nodes (27): google-ads-conversion-tracking Specification, Purpose, Requirement: Consent handling for conversions, Requirement: Conversion settings, Requirement: Conversion status in the admin panel, Requirement: Per-order de-duplication, Requirement: Purchase conversion event, Requirement: Save-time conversion warnings (+19 more)
+
+### Community 35 - "ADDED Requirements"
+Cohesion: 0.07
+Nodes (26): ADDED Requirements, Purpose, Requirement: Consent handling for conversions, Requirement: Conversion settings, Requirement: Conversion status in the admin panel, Requirement: Per-order de-duplication, Requirement: Purchase conversion event, Requirement: Save-time conversion warnings (+18 more)
+
+### Community 36 - ".buildEcommercePageData"
+Cohesion: 0.16
+Nodes (7): D1 — `SCM_GCM.event(name, params)` for non-ecommerce events, D2 — Item builders: `buildGa4Item()` in PHP, `mapItem()` in JS, same output, D3 — Lists: server payload on load, `updateProductList` on AJAX, delegated click for `select_item`, D4 — `view_item` on combination change, D5 — Checkout: server-detected shipping, client-detected payment, D8 — Version and upgrade, Decisions
+
+### Community 37 - "ADDED Requirements"
+Cohesion: 0.12
+Nodes (15): ADDED Requirements, Purpose, Requirement: No personal data in user events, Requirement: Pending events survive redirects, Requirement: Search event, Requirement: Search term is safely encoded, Requirement: Sign-up event, Scenario: Empty query (+7 more)
+
+### Community 38 - "Tasks"
+Cohesion: 0.16
+Nodes (9): D7 — Search event and safe JSON, Impact, 1. Harness and bootstrap entry point for non-ecommerce events, 2. Shared item shape and safe payload encoding, 3. Product lists and product detail, 4. Checkout funnel and purchase, 6. Version, upgrade and integration checks, Tasks (+1 more)
+
+### Community 39 - "Decisions"
+Cohesion: 0.15
+Nodes (12): D1 — Mode-aware dispatch lives in the head bootstrap, resolved at `DOMContentLoaded`, with a queue, D2 — Ads conversions are sent as the native `conversion` event with `send_to`, not via GA4 import, D3 — With a GTM container the module stays hands-off by default; `ADS_FORCE_DIRECT` opts in, D4 — The purchase template stays the de-dup owner and becomes a thin caller, D6 — Versioning and upgrade, D7 — Verification without a test suite, Decisions, Design (+4 more)
+
+### Community 40 - "Requirements"
+Cohesion: 0.15
+Nodes (13): Requirement: No personal data in user events, Requirement: Pending events survive redirects, Requirement: Search event, Requirement: Search term is safely encoded, Requirement: Sign-up event, Requirements, Scenario: Empty query, Scenario: Guest checkout (+5 more)
+
+### Community 41 - ".renderBannerAndEcommerce"
+Cohesion: 0.17
+Nodes (5): Context, Design, Goals / Non-Goals, Migration Plan, Risks / Trade-offs
+
+### Community 42 - "Requirement: Tag mode resolution"
+Cohesion: 0.18
+Nodes (10): MODIFIED Requirements, Requirement: Pre-resolution event queue, Requirement: Tag mode resolution, Scenario: Container present, no direct Ads tag, Scenario: Container present with direct Ads tag, Scenario: Inline purchase before DOMContentLoaded, Scenario: Inline purchase without a grant, Scenario: No Google tag (+2 more)
+
+### Community 43 - ".install"
+Cohesion: 0.27
+Nodes (3): D6 — Account events via the Context cookie, 5. Account and search events, Stack control
+
+### Community 44 - "Proposal"
+Cohesion: 0.25
+Nodes (7): Capabilities, Impact, Modified Capabilities, New Capabilities, Proposal, What Changes, Why
+
+### Community 45 - "Proposal"
+Cohesion: 0.29
+Nodes (6): Capabilities, Modified Capabilities, New Capabilities, Proposal, What Changes, Why
+
+### Community 46 - "Proposal"
+Cohesion: 0.29
+Nodes (6): Capabilities, Modified Capabilities, New Capabilities, Proposal, What Changes, Why
+
+### Community 47 - "Design"
+Cohesion: 0.29
+Nodes (6): Design, Goals / Non-Goals, Migration Plan, Open Questions, Reconciliation with the in-flight changes, Risks / Trade-offs
+
+### Community 48 - "Requirement: Consent handling for conversions"
+Cohesion: 0.33
+Nodes (5): MODIFIED Requirements, Requirement: Consent handling for conversions, Scenario: Consent Mode disabled, Scenario: Marketing consent denied, Scenario: Marketing consent granted
 
 ## Knowledge Gaps
 - **17 isolated node(s):** `terser`, `SecCodeSmith Commercial License v1.1 header comment`, `Task implementation loop`, `Archive move to dated directory`, `Artifact and task completion checks` (+12 more)
-  These have ≤1 connection - possible missing edges or undocumented components. (Counts symbols only; 205 node(s) total have ≤1 connection when file, concept and rationale nodes are included.)
-- **7 thin communities (<3 nodes) omitted from report** — run `graphify query` to explore isolated nodes.
+  These have ≤1 connection - possible missing edges or undocumented components. (Counts symbols only; 393 node(s) total have ≤1 connection when file, concept and rationale nodes are included.)
+- **14 thin communities (<3 nodes) omitted from report** — run `graphify query` to explore isolated nodes.
 
 ## Suggested Questions
 _Questions this graph is uniquely positioned to answer:_
 
-- **Why does `login()` connect `login` to `Scm_Cookieconsent`, `scm_cookieconsent - end-to-end tests (Playwright)`, `04-account.spec.js`, `helpers.js`?**
-  _High betweenness centrality (0.138) - this node is a cross-community bridge._
-- **Are the 19 inferred relationships involving `login()` (e.g. with `Context` and `New Capabilities`) actually correct?**
-  _`login()` has 19 INFERRED edges - model-reasoned connections that need verification._
+- **Why does `currency()` connect `scm_ecommerce.js` to `Requirements`, `ADDED Requirements`, `ADDED Requirements`, `Proposal`, `Requirements`?**
+  _High betweenness centrality (0.198) - this node is a cross-community bridge._
+- **Are the 31 inferred relationships involving `login()` (e.g. with `Context` and `New Capabilities`) actually correct?**
+  _`login()` has 31 INFERRED edges - model-reasoned connections that need verification._
 - **What connects `terser`, `SecCodeSmith Commercial License v1.1 header comment`, `Task implementation loop` to the rest of the system?**
   _17 weakly-connected nodes found - possible documentation gaps or missing edges._
-- **Should `Scm_Cookieconsent` be split into smaller, more focused modules?**
-  _Cohesion score 0.05063291139240506 - nodes in this community are weakly interconnected._
-- **Why does `config()` connect `gcm_bootstrap.src.js` to `scm_ecommerce.js`, `sql`?**
-  _High betweenness centrality (0.112) - this node is a cross-community bridge._
-- **Are the 2 inferred relationships involving `Proposal: Google Ads conversion tracking` (e.g. with `add-google-ads-conversion-tracking change metadata` and `OpenSpec config (spec-driven schema)`) actually correct?**
-  _`Proposal: Google Ads conversion tracking` has 2 INFERRED edges - model-reasoned connections that need verification._
 - **Should `06-consent-basic.spec.js` be split into smaller, more focused modules?**
   _Cohesion score 0.08923076923076922 - nodes in this community are weakly interconnected._
+- **Why does `config()` connect `gcm_bootstrap.src.js` to `ADDED Requirements`, `scm_ecommerce.js`, `Decisions`, `.getAllConfig`, `Requirements`, `sql`?**
+  _High betweenness centrality (0.183) - this node is a cross-community bridge._
+- **Are the 11 inferred relationships involving `currency()` (e.g. with `What Changes` and `Requirement: Purchase conversion event`) actually correct?**
+  _`currency()` has 11 INFERRED edges - model-reasoned connections that need verification._
+- **Should `scm_cookieconsent.js` be split into smaller, more focused modules?**
+  _Cohesion score 0.10175763182238667 - nodes in this community are weakly interconnected._

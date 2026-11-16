@@ -1,344 +1,392 @@
 {
   ".claude/settings.json": {
-    "mtime": 1794857076.0843427,
-    "seen": 1794857928.758702,
-    "ast_hash": "ec1c122bc38fb5b9914ce1829f295ad3",
+    "mtime": 1794843355.8366153,
+    "seen": 1794862540.9004762,
+    "ast_hash": "0180972a484cefa4e3b9269678296d67",
     "semantic_hash": ""
   },
   "build.ps1": {
-    "mtime": 1794857076.0893743,
-    "seen": 1794857928.7587059,
-    "ast_hash": "56610b30f9c00e9b24a2790f70049337",
+    "mtime": 1794844973.5248287,
+    "seen": 1794862540.9004807,
+    "ast_hash": "f7debb5a4b99e08148bed132246b2656",
     "semantic_hash": ""
   },
   "scm_cookieconsent.php": {
-    "mtime": 1794857076.1442654,
-    "seen": 1794857928.758708,
+    "mtime": 1794854075.5242996,
+    "seen": 1794862540.9004831,
     "ast_hash": "c40de64d433897e81bffa3d3f895d08b",
     "semantic_hash": ""
   },
   "upgrade/upgrade-1.5.0.php": {
-    "mtime": 1794857076.151628,
-    "seen": 1794857928.758719,
-    "ast_hash": "844b4594079bb192ec4fd1caa29cb2c7",
+    "mtime": 1794843356.3939366,
+    "seen": 1794862540.9004948,
+    "ast_hash": "16e2dcb95ecafd0b50de221a4d4a7bf4",
     "semantic_hash": ""
   },
   "upgrade/upgrade-1.6.0.php": {
-    "mtime": 1794857076.151628,
-    "seen": 1794857928.7587197,
-    "ast_hash": "b6ce62be110a701ff58cb12e253b4873",
+    "mtime": 1794843356.400047,
+    "seen": 1794862540.9004955,
+    "ast_hash": "a6ff150f097109a63fe37be7b3e6124e",
     "semantic_hash": ""
   },
   "views/js/scm_cookieconsent.js": {
-    "mtime": 1794857230.6218903,
-    "seen": 1794857928.7587228,
+    "mtime": 1794862448.907902,
+    "seen": 1794862540.9004986,
     "ast_hash": "bbc7cae74660694e0e66df4baabe6834",
     "semantic_hash": ""
   },
   "views/js/scm_cookieconsent.min.js": {
-    "mtime": 1794857301.3375404,
-    "seen": 1794857928.7587235,
-    "ast_hash": "6732a6211c44ccd53580378ba2f8e714",
+    "mtime": 1794862448.9089022,
+    "seen": 1794862540.9004998,
+    "ast_hash": "ba493bf363c9c41ccbd109c4621f9062",
     "semantic_hash": ""
   },
   "views/js/scm_ecommerce.js": {
-    "mtime": 1794860153.8940115,
-    "seen": 1794862448.2793152,
+    "mtime": 1794862448.9089022,
+    "seen": 1794862540.9005003,
     "ast_hash": "748faa5570832569b80f68d466afaa9d",
     "semantic_hash": ""
   },
   "views/js/src/gcm_bootstrap.src.js": {
-    "mtime": 1794857076.1552403,
-    "seen": 1794857928.758725,
-    "ast_hash": "a0c2721f120d4b7f5d193c19ce6c476e",
+    "mtime": 1794844966.1440248,
+    "seen": 1794862540.900501,
+    "ast_hash": "88f29f4a63830d10e789953f93b718cb",
     "semantic_hash": ""
   },
   ".claude/skills/openspec-apply-change/SKILL.md": {
-    "mtime": 1794857076.0843427,
-    "seen": 1794857928.7587254,
-    "ast_hash": "6e1fe2c28be4e36a88633e9afa4af56b",
+    "mtime": 1794843355.839616,
+    "seen": 1794862540.9005017,
+    "ast_hash": "2b12e67f11428dbf0f2182b743e95380",
     "semantic_hash": ""
   },
   ".claude/skills/openspec-archive-change/SKILL.md": {
-    "mtime": 1794857076.0843427,
-    "seen": 1794857928.7587264,
-    "ast_hash": "7bf68b92457e3e2c0990dd5ab02ac32d",
+    "mtime": 1794843355.8441217,
+    "seen": 1794862540.9005024,
+    "ast_hash": "2e8b9e7e0466b417487565c25ac09233",
     "semantic_hash": ""
   },
   ".claude/skills/openspec-explore/SKILL.md": {
-    "mtime": 1794857076.0843427,
-    "seen": 1794857928.7587268,
-    "ast_hash": "78fba569de5877f70a5e0f084f08fd25",
+    "mtime": 1794843355.8491368,
+    "seen": 1794862540.9005034,
+    "ast_hash": "c9c0af9ca015b09a9aacc0e613220142",
     "semantic_hash": ""
   },
   ".claude/skills/openspec-propose/SKILL.md": {
-    "mtime": 1794857076.0843427,
-    "seen": 1794857928.7587278,
-    "ast_hash": "22f0996f1faf810d6a1011e69c4ca685",
+    "mtime": 1794843355.8643286,
+    "seen": 1794862540.900504,
+    "ast_hash": "bbeeebff03c5e9187187b29688371bd4",
     "semantic_hash": ""
   },
   ".claude/skills/openspec-sync-specs/SKILL.md": {
-    "mtime": 1794857076.0868487,
-    "seen": 1794857928.7587285,
-    "ast_hash": "21d1e010060ee9f8c7ec2e5bdabd85f5",
+    "mtime": 1794843355.8703415,
+    "seen": 1794862540.9005048,
+    "ast_hash": "95ea3c8b0ac5e7d81a5297759d832859",
     "semantic_hash": ""
   },
   ".claude/skills/openspec-update-change/SKILL.md": {
-    "mtime": 1794857076.087361,
-    "seen": 1794857928.7587292,
-    "ast_hash": "cc51b7057e408fc434f6228e451e08da",
+    "mtime": 1794843355.8748634,
+    "seen": 1794862540.9005055,
+    "ast_hash": "7a4fbeca10021f32441941bac76d3e4f",
     "semantic_hash": ""
   },
   ".github/workflows/build.yml": {
-    "mtime": 1794857076.087361,
-    "seen": 1794857928.75873,
-    "ast_hash": "0ea4850e65b58bc389387b0e3050e464",
+    "mtime": 1794844452.623577,
+    "seen": 1794862540.9005063,
+    "ast_hash": "8caa32dc4c7159bca477032ff6861f72",
     "semantic_hash": ""
   },
   "CLAUDE.md": {
-    "mtime": 1794857076.087361,
-    "seen": 1794857928.7587306,
-    "ast_hash": "7144c633c373c854731b8106f46224bb",
+    "mtime": 1794843355.8828683,
+    "seen": 1794862540.9005072,
+    "ast_hash": "67d88e9d0760c3ba54c75dfd9551c1c5",
     "semantic_hash": ""
   },
   "README.md": {
-    "mtime": 1794857076.0893743,
-    "seen": 1794857928.7587316,
+    "mtime": 1794854075.501006,
+    "seen": 1794862540.900508,
     "ast_hash": "2d723eb73a956acf01713dea2e9daf49",
     "semantic_hash": ""
   },
-  "openspec/changes/add-google-ads-conversion-tracking/.openspec.yaml": {
-    "mtime": 1794857076.1356037,
-    "seen": 1794857928.758732,
-    "ast_hash": "390874f89ec5cfdb398f80b048659fc3",
-    "semantic_hash": ""
-  },
-  "openspec/changes/add-google-ads-conversion-tracking/design.md": {
-    "mtime": 1794857076.1356037,
-    "seen": 1794857928.7587328,
-    "ast_hash": "a9384f129a6cae6a5b24041b24d1e5cf",
-    "semantic_hash": ""
-  },
-  "openspec/changes/add-google-ads-conversion-tracking/proposal.md": {
-    "mtime": 1794857076.137108,
-    "seen": 1794857928.7587337,
-    "ast_hash": "770becc2aa54234a54af4125927d58b4",
-    "semantic_hash": ""
-  },
-  "openspec/changes/add-google-ads-conversion-tracking/specs/google-ads-conversion-tracking/spec.md": {
-    "mtime": 1794857076.137108,
-    "seen": 1794857928.7587347,
-    "ast_hash": "6d6e36e05a2505502befb88c81aeb8eb",
-    "semantic_hash": ""
-  },
-  "openspec/changes/add-google-ads-conversion-tracking/specs/google-tag-integration/spec.md": {
-    "mtime": 1794857076.137108,
-    "seen": 1794857928.7587352,
-    "ast_hash": "9107698724557d40492585a4956b46c9",
-    "semantic_hash": ""
-  },
-  "openspec/changes/add-google-ads-conversion-tracking/tasks.md": {
-    "mtime": 1794857076.137108,
-    "seen": 1794857928.758736,
-    "ast_hash": "06e55728ffafa3f6ea10facac168a334",
-    "semantic_hash": ""
-  },
   "openspec/config.yaml": {
-    "mtime": 1794857076.1442654,
-    "seen": 1794857928.7587469,
+    "mtime": 1794772022.4997554,
+    "seen": 1794862540.9005241,
     "ast_hash": "a342086976920fd1081c7f8934f12792",
     "semantic_hash": ""
   },
   "docs/banner-modal-pl.png": {
-    "mtime": 1794857076.0913897,
-    "seen": 1794857928.7587492,
+    "mtime": 1794772022.4612043,
+    "seen": 1794862540.9005313,
     "ast_hash": "3eaeade005c091932d0c3e8841ff8002",
     "semantic_hash": "3eaeade005c091932d0c3e8841ff8002"
   },
   "logo.png": {
-    "mtime": 1794857076.1356037,
-    "seen": 1794857928.7587502,
+    "mtime": 1794772022.493729,
+    "seen": 1794862540.9005322,
     "ast_hash": "125914d7e083d27a48b78b7fdd6782d8",
     "semantic_hash": "125914d7e083d27a48b78b7fdd6782d8"
   },
   "views/img/cookie-bite.svg": {
-    "mtime": 1794857076.151628,
-    "seen": 1794857928.758751,
+    "mtime": 1794843356.4277048,
+    "seen": 1794862540.9005332,
     "ast_hash": "d89d2c401d314294e3cd238fbff11559",
     "semantic_hash": "d89d2c401d314294e3cd238fbff11559"
   },
   "upgrade/upgrade-1.7.0.php": {
-    "mtime": 1794857076.151628,
-    "seen": 1794857928.7587209,
-    "ast_hash": "1436bcde84d65d5e8410c13f2e7aa11d",
+    "mtime": 1794843356.4055622,
+    "seen": 1794862540.9004965,
+    "ast_hash": "1c060a4e806bd23c9848718a26281369",
     "semantic_hash": ""
   },
   "upgrade/upgrade-1.8.0.php": {
-    "mtime": 1794857076.151628,
-    "seen": 1794857928.7587216,
-    "ast_hash": "942f343651ef7d91cb1b581d5866af77",
-    "semantic_hash": ""
-  },
-  "openspec/changes/complete-ga4-ecommerce-measurement/.openspec.yaml": {
-    "mtime": 1794857076.1386416,
-    "seen": 1794857928.7587366,
-    "ast_hash": "3a95093af035ea8ee3bd48377ed99f91",
-    "semantic_hash": ""
-  },
-  "openspec/changes/complete-ga4-ecommerce-measurement/design.md": {
-    "mtime": 1794857076.1386416,
-    "seen": 1794857928.7587383,
-    "ast_hash": "cddbe7d98587db2145010b819eceeea1",
-    "semantic_hash": ""
-  },
-  "openspec/changes/complete-ga4-ecommerce-measurement/proposal.md": {
-    "mtime": 1794857076.1386416,
-    "seen": 1794857928.7587392,
-    "ast_hash": "cf2f01dd0ceca4c02e922c92746d384c",
-    "semantic_hash": ""
-  },
-  "openspec/changes/complete-ga4-ecommerce-measurement/specs/ga4-ecommerce-events/spec.md": {
-    "mtime": 1794857076.1401658,
-    "seen": 1794857928.7587397,
-    "ast_hash": "ed8c24b1805a0c06ce28df57163342d3",
-    "semantic_hash": ""
-  },
-  "openspec/changes/complete-ga4-ecommerce-measurement/specs/ga4-user-events/spec.md": {
-    "mtime": 1794857076.1401658,
-    "seen": 1794857928.7587404,
-    "ast_hash": "1bb79ddf6c3473f1e4a783fb75dee7c5",
-    "semantic_hash": ""
-  },
-  "openspec/changes/complete-ga4-ecommerce-measurement/tasks.md": {
-    "mtime": 1794857076.1401658,
-    "seen": 1794857928.7587416,
-    "ast_hash": "84a2831d21db6316c3e8dfb05aef5928",
+    "mtime": 1794843356.4085686,
+    "seen": 1794862540.9004974,
+    "ast_hash": "df91c485bc9d1aa378a90967f91a30ad",
     "semantic_hash": ""
   },
   "tests/e2e/package.json": {
-    "mtime": 1794857076.147274,
-    "seen": 1794857928.7587092,
-    "ast_hash": "71558ccc7b6dda86722aa9d9e48b352d",
+    "mtime": 1794844106.0657718,
+    "seen": 1794862540.9004843,
+    "ast_hash": "5e13475c013d1c0403edce48c47360c2",
     "semantic_hash": ""
   },
   "tests/e2e/playwright.config.js": {
-    "mtime": 1794857076.147274,
-    "seen": 1794857928.7587104,
-    "ast_hash": "6efb045330d84aee54aa461740bc3e6e",
+    "mtime": 1794843356.3567543,
+    "seen": 1794862540.9004853,
+    "ast_hash": "df75936e52699421b10b2ef7c034a5c4",
     "semantic_hash": ""
   },
   "tests/e2e/specs/01-upgrade.spec.js": {
-    "mtime": 1794857076.147274,
-    "seen": 1794857928.7587113,
-    "ast_hash": "e370de45081c40033e311926628ada12",
+    "mtime": 1794844033.4222138,
+    "seen": 1794862540.9004865,
+    "ast_hash": "0ad8a2d5dca62a7a2c65964307226894",
     "semantic_hash": ""
   },
   "tests/e2e/specs/02-catalog.spec.js": {
-    "mtime": 1794857076.147274,
-    "seen": 1794857928.758712,
-    "ast_hash": "648398b66b7e5ec901bcd2ed316b369d",
+    "mtime": 1794843356.363775,
+    "seen": 1794862540.9004872,
+    "ast_hash": "3de0ad50d72ce9f44ba73c6df8c2af0b",
     "semantic_hash": ""
   },
   "tests/e2e/specs/03-checkout.spec.js": {
-    "mtime": 1794857076.147274,
-    "seen": 1794857928.7587128,
-    "ast_hash": "04dd539f86eb4dade384c72fccda2e2e",
+    "mtime": 1794843356.3697815,
+    "seen": 1794862540.9004877,
+    "ast_hash": "c8b79893cc2f40b4a535b45cef294ce6",
     "semantic_hash": ""
   },
   "tests/e2e/specs/04-account.spec.js": {
-    "mtime": 1794857076.147274,
-    "seen": 1794857928.7587135,
-    "ast_hash": "bdc5d486f20302b474861ea5f6dbc38e",
+    "mtime": 1794843356.3737817,
+    "seen": 1794862540.9004884,
+    "ast_hash": "53b89fb7d9dcb8fdf6a7b54fe152faef",
     "semantic_hash": ""
   },
   "tests/e2e/specs/05-admin.spec.js": {
-    "mtime": 1794857076.147274,
-    "seen": 1794857928.7587144,
-    "ast_hash": "1f50021c5fe8f4323c223919d42ca7a4",
+    "mtime": 1794845413.4411566,
+    "seen": 1794862540.9004896,
+    "ast_hash": "fad866d9f1251c9b7a8d86575a1e48c6",
     "semantic_hash": ""
   },
   "tests/e2e/specs/06-consent-basic.spec.js": {
-    "mtime": 1794858549.4567633,
-    "seen": 1794859648.3068964,
+    "mtime": 1794862448.906833,
+    "seen": 1794862540.9004905,
     "ast_hash": "60700bee473a4bb3d7f3d0763f4fd52b",
     "semantic_hash": ""
   },
   "tests/e2e/specs/helpers.js": {
-    "mtime": 1794857076.147274,
-    "seen": 1794857928.7587159,
-    "ast_hash": "46e321dfa0607cafa2beba4ecb3807cd",
+    "mtime": 1794845375.051769,
+    "seen": 1794862540.9004915,
+    "ast_hash": "75bcea381a08dac819259b58a3c74c88",
     "semantic_hash": ""
   },
   "tests/e2e/stack.sh": {
-    "mtime": 1794857076.147274,
-    "seen": 1794857928.7587166,
+    "mtime": 1794843356.388938,
+    "seen": 1794862540.9004922,
     "ast_hash": "f49d27b4833ec45921307c48ecb3ea42",
     "semantic_hash": ""
   },
   "tests/unit/check-bootstrap-min.js": {
-    "mtime": 1794857076.151628,
-    "seen": 1794857928.7587175,
-    "ast_hash": "fb9cd829b18bdc2fd6ab2cc4b30626cc",
+    "mtime": 1794844123.3875182,
+    "seen": 1794862540.9004934,
+    "ast_hash": "1cda7be95f84afd6d123f0b1aabb5cd3",
     "semantic_hash": ""
   },
   "tests/unit/gcm_bootstrap.harness.js": {
-    "mtime": 1794857076.151628,
-    "seen": 1794857928.7587183,
-    "ast_hash": "419486a7fb8e5f7a4bb90d61f850ddd6",
+    "mtime": 1794843889.782792,
+    "seen": 1794862540.900494,
+    "ast_hash": "d918b493fa2196294490be45059759c7",
     "semantic_hash": ""
   },
   "upgrade/upgrade-1.9.0.php": {
-    "mtime": 1794857076.151628,
-    "seen": 1794857928.758722,
+    "mtime": 1794854075.5263128,
+    "seen": 1794862540.9004982,
     "ast_hash": "a45d3e5b4f56c2cb473548887b2defe4",
     "semantic_hash": ""
   },
-  "openspec/changes/consent-mode-basic/.openspec.yaml": {
-    "mtime": 1794857076.1401658,
-    "seen": 1794857928.758742,
-    "ast_hash": "85eda6bb75443d172163dd042a766792",
-    "semantic_hash": ""
-  },
-  "openspec/changes/consent-mode-basic/design.md": {
-    "mtime": 1794857806.1597176,
-    "seen": 1794857928.7587428,
-    "ast_hash": "c67d2d3645068ad3d658ad6625bece0f",
-    "semantic_hash": ""
-  },
-  "openspec/changes/consent-mode-basic/proposal.md": {
-    "mtime": 1794857076.1401658,
-    "seen": 1794857928.7587435,
-    "ast_hash": "8ab524ee7053298f64d8ad845061183c",
-    "semantic_hash": ""
-  },
-  "openspec/changes/consent-mode-basic/specs/consent-banner-choices/spec.md": {
-    "mtime": 1794857837.8667603,
-    "seen": 1794857928.7587445,
-    "ast_hash": "3bfa384fde375a97660ae467fe7f23d5",
-    "semantic_hash": ""
-  },
-  "openspec/changes/consent-mode-basic/specs/consent-gated-tag-loading/spec.md": {
-    "mtime": 1794857076.1430528,
-    "seen": 1794857928.7587457,
-    "ast_hash": "0e710600765fef8a9b239486a7473e32",
-    "semantic_hash": ""
-  },
-  "openspec/changes/consent-mode-basic/tasks.md": {
-    "mtime": 1794861256.7445898,
-    "seen": 1794862448.279339,
-    "ast_hash": "aaca2e74c6bf8bc4c3cb3bed238dedcd",
-    "semantic_hash": ""
-  },
   "tests/e2e/README.md": {
-    "mtime": 1794857076.1442654,
-    "seen": 1794857928.7587476,
-    "ast_hash": "f554603c615c3e57a1694b9d3b424f3e",
+    "mtime": 1794844941.8416202,
+    "seen": 1794862540.9005294,
+    "ast_hash": "42c9fb127761634f7932e09597b5ef47",
     "semantic_hash": ""
   },
   "tests/e2e/docker-compose.yml": {
-    "mtime": 1794857076.1462703,
-    "seen": 1794857928.7587485,
-    "ast_hash": "d6684795d6b1147e3c67238ca0df20c9",
+    "mtime": 1794843356.348661,
+    "seen": 1794862540.9005303,
+    "ast_hash": "2bbdc9661baf66cdf52b1a71066c34cc",
+    "semantic_hash": ""
+  },
+  "openspec/changes/archive/2026-11-16-add-google-ads-conversion-tracking/.openspec.yaml": {
+    "mtime": 1794772022.493729,
+    "seen": 1794862540.900509,
+    "ast_hash": "390874f89ec5cfdb398f80b048659fc3",
+    "semantic_hash": ""
+  },
+  "openspec/changes/archive/2026-11-16-add-google-ads-conversion-tracking/design.md": {
+    "mtime": 1794843356.2436793,
+    "seen": 1794862540.9005103,
+    "ast_hash": "bc977543d7724f67435c1ab95f26d814",
+    "semantic_hash": ""
+  },
+  "openspec/changes/archive/2026-11-16-add-google-ads-conversion-tracking/proposal.md": {
+    "mtime": 1794843356.2506857,
+    "seen": 1794862540.900511,
+    "ast_hash": "98135debbef74c60c1dd4f27db91870c",
+    "semantic_hash": ""
+  },
+  "openspec/changes/archive/2026-11-16-add-google-ads-conversion-tracking/specs/google-ads-conversion-tracking/spec.md": {
+    "mtime": 1794843356.2578108,
+    "seen": 1794862540.9005115,
+    "ast_hash": "0904c3f07744e2e813898a45e340a18c",
+    "semantic_hash": ""
+  },
+  "openspec/changes/archive/2026-11-16-add-google-ads-conversion-tracking/specs/google-tag-integration/spec.md": {
+    "mtime": 1794843356.2648356,
+    "seen": 1794862540.9005125,
+    "ast_hash": "c1c87751bb0da73cda186454eadf8461",
+    "semantic_hash": ""
+  },
+  "openspec/changes/archive/2026-11-16-add-google-ads-conversion-tracking/tasks.md": {
+    "mtime": 1794862471.6016667,
+    "seen": 1794862540.9005132,
+    "ast_hash": "672078f7add418e8dd9468679d190884",
+    "semantic_hash": ""
+  },
+  "openspec/changes/archive/2026-11-16-complete-ga4-ecommerce-measurement/.openspec.yaml": {
+    "mtime": 1794772022.4977493,
+    "seen": 1794862540.9005141,
+    "ast_hash": "3a95093af035ea8ee3bd48377ed99f91",
+    "semantic_hash": ""
+  },
+  "openspec/changes/archive/2026-11-16-complete-ga4-ecommerce-measurement/design.md": {
+    "mtime": 1794843356.278041,
+    "seen": 1794862540.9005148,
+    "ast_hash": "ba57d6608c8bcb7e5cff75c1567bc195",
+    "semantic_hash": ""
+  },
+  "openspec/changes/archive/2026-11-16-complete-ga4-ecommerce-measurement/proposal.md": {
+    "mtime": 1794843356.284553,
+    "seen": 1794862540.9005156,
+    "ast_hash": "8724373f22bd9446712f342e4ac81b93",
+    "semantic_hash": ""
+  },
+  "openspec/changes/archive/2026-11-16-complete-ga4-ecommerce-measurement/specs/ga4-ecommerce-events/spec.md": {
+    "mtime": 1794843356.2920592,
+    "seen": 1794862540.9005163,
+    "ast_hash": "139444d3645a665b394908b02a7a24f1",
+    "semantic_hash": ""
+  },
+  "openspec/changes/archive/2026-11-16-complete-ga4-ecommerce-measurement/specs/ga4-user-events/spec.md": {
+    "mtime": 1794843356.2995882,
+    "seen": 1794862540.9005172,
+    "ast_hash": "648314f482583bde4a4430a54b129b5e",
+    "semantic_hash": ""
+  },
+  "openspec/changes/archive/2026-11-16-complete-ga4-ecommerce-measurement/tasks.md": {
+    "mtime": 1794862471.6006668,
+    "seen": 1794862540.9005177,
+    "ast_hash": "ba8b6102bec83523f2f13b2ed79623ca",
+    "semantic_hash": ""
+  },
+  "openspec/changes/archive/2026-11-16-consent-mode-basic/.openspec.yaml": {
+    "mtime": 1794772101.852079,
+    "seen": 1794862540.9005184,
+    "ast_hash": "b8f4f2144dfcc889b8bf76c80088e593",
+    "semantic_hash": ""
+  },
+  "openspec/changes/archive/2026-11-16-consent-mode-basic/design.md": {
+    "mtime": 1794862448.9048326,
+    "seen": 1794862540.900519,
+    "ast_hash": "c67d2d3645068ad3d658ad6625bece0f",
+    "semantic_hash": ""
+  },
+  "openspec/changes/archive/2026-11-16-consent-mode-basic/proposal.md": {
+    "mtime": 1794843356.3142083,
+    "seen": 1794862540.9005196,
+    "ast_hash": "3db9c273c0e61e4edc9d8b0ce402a4fb",
+    "semantic_hash": ""
+  },
+  "openspec/changes/archive/2026-11-16-consent-mode-basic/specs/consent-banner-choices/spec.md": {
+    "mtime": 1794862448.9058328,
+    "seen": 1794862540.90052,
+    "ast_hash": "3bfa384fde375a97660ae467fe7f23d5",
+    "semantic_hash": ""
+  },
+  "openspec/changes/archive/2026-11-16-consent-mode-basic/specs/consent-gated-tag-loading/spec.md": {
+    "mtime": 1794843356.322916,
+    "seen": 1794862540.900521,
+    "ast_hash": "a475b656c0fd1bb700953ae3a0d2bb53",
+    "semantic_hash": ""
+  },
+  "openspec/changes/archive/2026-11-16-consent-mode-basic/specs/google-ads-conversion-tracking/spec.md": {
+    "mtime": 1794862527.9113555,
+    "seen": 1794862540.9005218,
+    "ast_hash": "8585d40b0f4676b3ae62ddd82326b570",
+    "semantic_hash": ""
+  },
+  "openspec/changes/archive/2026-11-16-consent-mode-basic/specs/google-tag-integration/spec.md": {
+    "mtime": 1794862527.9123557,
+    "seen": 1794862540.9005225,
+    "ast_hash": "3a2b0c1bdc260f76b94f5fffb646ea3a",
+    "semantic_hash": ""
+  },
+  "openspec/changes/archive/2026-11-16-consent-mode-basic/tasks.md": {
+    "mtime": 1794862498.2140937,
+    "seen": 1794862540.900523,
+    "ast_hash": "6286069da2d55391d9a24e9eaec39285",
+    "semantic_hash": ""
+  },
+  "openspec/specs/consent-banner-choices/spec.md": {
+    "mtime": 1794862498.8270905,
+    "seen": 1794862540.9005249,
+    "ast_hash": "e46eb8f67aef5499eec20e554492147f",
+    "semantic_hash": ""
+  },
+  "openspec/specs/consent-gated-tag-loading/spec.md": {
+    "mtime": 1794862498.8280907,
+    "seen": 1794862540.9005256,
+    "ast_hash": "fc9c69c0b5f8fcd94f368bd3a7fad184",
+    "semantic_hash": ""
+  },
+  "openspec/specs/ga4-ecommerce-events/spec.md": {
+    "mtime": 1794862472.1674893,
+    "seen": 1794862540.9005265,
+    "ast_hash": "62b1a05ad8f02c0d252036839cfe92dc",
+    "semantic_hash": ""
+  },
+  "openspec/specs/ga4-user-events/spec.md": {
+    "mtime": 1794862472.1694937,
+    "seen": 1794862540.9005275,
+    "ast_hash": "e2ccd05d83446396f298a192826f7d34",
+    "semantic_hash": ""
+  },
+  "openspec/specs/google-ads-conversion-tracking/spec.md": {
+    "mtime": 1794862527.910356,
+    "seen": 1794862540.9005282,
+    "ast_hash": "93db7cee170b688263126f8a955194d4",
+    "semantic_hash": ""
+  },
+  "openspec/specs/google-tag-integration/spec.md": {
+    "mtime": 1794862527.9113555,
+    "seen": 1794862540.9005287,
+    "ast_hash": "544e715b90edbd6b322e34fbe6dbfb9d",
     "semantic_hash": ""
   }
 }

@@ -74,4 +74,5 @@ Specs: `specs/consent-gated-tag-loading/spec.md`, `specs/consent-banner-choices/
 ## Workflow follow-up
 
 - After the in-flight changes are archived, convert the two spec deltas to `MODIFIED` where design "Reconciliation" lists them, run `openspec validate --strict`, then archive this change.
+  - Done 2026-11-16: both in-flight changes archived first; this change now carries `MODIFIED` deltas for `google-ads-conversion-tracking` ("Consent handling for conversions": no conversion without the advertising grant) and `google-tag-integration` ("Pre-resolution event queue", "Tag mode resolution"); `openspec validate --strict` passes. Archived with task 5.4 (manual staging check with real ids) left open for the owner.
 - Tell the shop repository's owner which module version to install and that GA4 and Ads figures will drop from that day.

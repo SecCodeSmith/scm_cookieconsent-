@@ -115,7 +115,7 @@ After the visitor's first choice the banner SHALL be hidden and SHALL NOT cover 
 - **THEN** the "add to cart" button is not overlapped by any element of this module
 
 ### Requirement: The choice can be changed from the footer
-When the footer link setting is on (default), every page SHALL carry a text link "Zmień ustawienia cookies" in its footer that opens the banner on its first screen, from which the settings screen shows the stored choice. The visitor SHALL be able to change or withdraw every optional category there.
+When the footer link setting is on (default), every page SHALL carry a text link "Zmień ustawienia cookies" in its footer that opens the banner on its first screen, from which the settings screen shows the stored choice. While the link is printed, the round reopen button SHALL be hidden at every width. The visitor SHALL be able to change or withdraw every optional category there.
 
 #### Scenario: Link on every page
 - **WHEN** a visitor opens the home, category, product, cart and order-confirmation pages
@@ -123,7 +123,11 @@ When the footer link setting is on (default), every page SHALL carry a text link
 
 #### Scenario: Setting off
 - **WHEN** the footer link setting is off
-- **THEN** no footer link is printed and the reopen button (if enabled) still opens the banner
+- **THEN** no footer link is printed and the reopen button (if enabled) is visible at every width and still opens the banner
+
+#### Scenario: Footer link replaces the round button
+- **WHEN** the footer link setting is on and a page is shown at 390 or 1366 pixels wide
+- **THEN** the round reopen button is not visible, and the footer link text inherits the footer's colour, is at least 14 px and has a focus ring of at least 3:1 contrast against the footer background
 
 ### Requirement: The choice is kept at most 365 days
 The module SHALL keep the visitor's choice for at most 365 days. The Settings tab SHALL NOT accept a longer lifetime, and a longer value stored before this change SHALL be reduced to 365 on upgrade. After the lifetime ends the banner SHALL be shown again.

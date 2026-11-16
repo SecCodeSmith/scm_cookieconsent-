@@ -1,17 +1,17 @@
 # Graph Report - scm_cookieconsent-  (2026-11-16)
 
 ## Corpus Check
-- 56 files · ~91,074 words
+- 56 files · ~91,484 words
 - Verdict: corpus is large enough that graph structure adds value.
 - Unclassified: 12 file(s) not represented in the graph (top: (none) 5, .tpl 5, .css 2)
 
 ## Summary
-- 896 nodes · 1362 edges · 54 communities (40 shown, 14 thin omitted)
+- 897 nodes · 1363 edges · 54 communities (41 shown, 13 thin omitted)
 - Extraction: 86% EXTRACTED · 14% INFERRED · 0% AMBIGUOUS · INFERRED: 189 edges (avg confidence: 0.93)
 - Token cost: 0 input · 0 output
 
 ## Graph Freshness
-- Built from commit: `a4e3711d`
+- Built from commit: `40bde39d`
 - Run `git rev-parse HEAD` and compare to check if the graph is stale.
 - Run `graphify update .` after code changes (no API cost).
 
@@ -62,7 +62,7 @@
 - Proposal
 - Design
 - Requirement: Consent handling for conversions
-- ga4-user-events Specification
+- Requirement: Sign-up event
 - OpenSpec config (spec-driven schema)
 
 ## God Nodes (most connected - your core abstractions)
@@ -98,7 +98,7 @@
 - **Shared store selection and project check preamble** — _claude_skills_openspec_apply_change_skill_store_selection, _claude_skills_openspec_apply_change_skill_project_check, _claude_skills_openspec_apply_change_skill_openspec_cli [INFERRED 0.85]
 - **OpenSpec change lifecycle workflow** — _claude_skills_openspec_explore_skill, _claude_skills_openspec_propose_skill, _claude_skills_openspec_update_change_skill, _claude_skills_openspec_apply_change_skill, _claude_skills_openspec_sync_specs_skill, _claude_skills_openspec_archive_change_skill [INFERRED 0.95]
 
-## Communities (54 total, 14 thin omitted)
+## Communities (54 total, 13 thin omitted)
 
 ### Community 1 - "06-consent-basic.spec.js"
 Cohesion: 0.09
@@ -133,8 +133,8 @@ Cohesion: 1.00
 Nodes (3): Project logo (glowing hammer over Matrix-style binary rain), Hammer motif (smith/forge branding), Green binary code rain (hacker/security aesthetic)
 
 ### Community 11 - "gcm_bootstrap.src.js"
-Cohesion: 0.08
-Nodes (38): 1. Head bootstrap — tag mode, event routing, Ads conversion (`views/js/src/gcm_bootstrap.src.js`), 2. Ecommerce callers use the entry point with a safe fallback, 4. Version bump and upgrade path, 5. Integration verification, Tasks, Workflow follow-up, D1. Tag loading moves from "every page" to "on a grant", in one function, D2. Order after a grant: tag, update, then events (+30 more)
+Cohesion: 0.09
+Nodes (36): 1. Head bootstrap — tag mode, event routing, Ads conversion (`views/js/src/gcm_bootstrap.src.js`), 2. Ecommerce callers use the entry point with a safe fallback, 4. Version bump and upgrade path, 5. Integration verification, Tasks, Workflow follow-up, D1. Tag loading moves from "every page" to "on a grant", in one function, D2. Order after a grant: tag, update, then events (+28 more)
 
 ### Community 13 - "login"
 Cohesion: 0.23
@@ -165,8 +165,8 @@ Cohesion: 0.41
 Nodes (6): Context, D5 — Settings and payload plumbing, Impact, 3. Settings, validation and admin UI (`scm_cookieconsent.php`, `views/templates/admin/configure.tpl`), D10. Release, 3. Banner and footer link
 
 ### Community 22 - "helpers.js"
-Cohesion: 0.17
-Nodes (18): Helpers (`specs/helpers.js`), Notes, { test, expect, setMode, sql, go, createVoucher, addToCart, fillGuest, fillAddress, chooseCarrier }, journey(), addToCart(), chooseCarrier(), createVoucher(), dismissBanner() (+10 more)
+Cohesion: 0.18
+Nodes (18): 1. Request log and failing tests first, Helpers (`specs/helpers.js`), { test, expect, setMode, sql, go, createVoucher, addToCart, fillGuest, fillAddress, chooseCarrier }, journey(), addToCart(), chooseCarrier(), createVoucher(), dismissBanner() (+10 more)
 
 ### Community 23 - "scm_cookieconsent PrestaShop module"
 Cohesion: 0.12
@@ -174,7 +174,7 @@ Nodes (11): Build GitHub Actions workflow, Package module job (build.ps1), php-l
 
 ### Community 24 - "Requirements"
 Cohesion: 0.05
-Nodes (40): consent-banner-choices Specification, Purpose, Requirement: Banner motion on opening and closing, Requirement: Banner motion on screen switch and cards, Requirement: Every entry point opens the first screen, Requirement: Optional categories start switched off, Requirement: Reduced motion is instant, Requirement: Rejecting is as easy as accepting (+32 more)
+Nodes (41): consent-banner-choices Specification, Purpose, Requirement: Banner motion on opening and closing, Requirement: Banner motion on screen switch and cards, Requirement: Every entry point opens the first screen, Requirement: Optional categories start switched off, Requirement: Reduced motion is instant, Requirement: Rejecting is as easy as accepting (+33 more)
 
 ### Community 25 - "Requirements"
 Cohesion: 0.05
@@ -193,8 +193,8 @@ Cohesion: 0.31
 Nodes (9): 7. Automated staging: Docker e2e suite, hooks(), NEW_HOOKS, { test, expect, stack, sql }, version(), setMode(), sql(), stack() (+1 more)
 
 ### Community 32 - "scm_cookieconsent - end-to-end tests (Playwright)"
-Cohesion: 0.40
-Nodes (4): Prerequisites, Running, scm_cookieconsent - end-to-end tests (Playwright), What each spec covers
+Cohesion: 0.33
+Nodes (5): Notes, Prerequisites, Running, scm_cookieconsent - end-to-end tests (Playwright), What each spec covers
 
 ### Community 33 - "ADDED Requirements"
 Cohesion: 0.07
@@ -217,8 +217,8 @@ Cohesion: 0.12
 Nodes (15): ADDED Requirements, Purpose, Requirement: No personal data in user events, Requirement: Pending events survive redirects, Requirement: Search event, Requirement: Search term is safely encoded, Requirement: Sign-up event, Scenario: Empty query (+7 more)
 
 ### Community 38 - "Tasks"
-Cohesion: 0.16
-Nodes (9): D7 — Search event and safe JSON, Impact, 1. Harness and bootstrap entry point for non-ecommerce events, 2. Shared item shape and safe payload encoding, 3. Product lists and product detail, 4. Checkout funnel and purchase, 6. Version, upgrade and integration checks, Tasks (+1 more)
+Cohesion: 0.18
+Nodes (8): D7 — Search event and safe JSON, 1. Harness and bootstrap entry point for non-ecommerce events, 2. Shared item shape and safe payload encoding, 3. Product lists and product detail, 4. Checkout funnel and purchase, 6. Version, upgrade and integration checks, Tasks, Workflow follow-up
 
 ### Community 39 - "Decisions"
 Cohesion: 0.15
@@ -226,11 +226,11 @@ Nodes (12): D1 — Mode-aware dispatch lives in the head bootstrap, resolved at 
 
 ### Community 40 - "Requirements"
 Cohesion: 0.15
-Nodes (13): Requirement: No personal data in user events, Requirement: Pending events survive redirects, Requirement: Search event, Requirement: Search term is safely encoded, Requirement: Sign-up event, Requirements, Scenario: Empty query, Scenario: Guest checkout (+5 more)
+Nodes (12): ga4-user-events Specification, Purpose, Requirement: No personal data in user events, Requirement: Pending events survive redirects, Requirement: Search event, Requirement: Search term is safely encoded, Requirements, Scenario: Empty query (+4 more)
 
 ### Community 41 - ".renderBannerAndEcommerce"
-Cohesion: 0.17
-Nodes (5): Context, Design, Goals / Non-Goals, Migration Plan, Risks / Trade-offs
+Cohesion: 0.15
+Nodes (6): Context, Design, Goals / Non-Goals, Migration Plan, Risks / Trade-offs, D7. Banner: equal buttons and a footer link
 
 ### Community 42 - "Requirement: Tag mode resolution"
 Cohesion: 0.18
@@ -249,8 +249,8 @@ Cohesion: 0.29
 Nodes (6): Capabilities, Modified Capabilities, New Capabilities, Proposal, What Changes, Why
 
 ### Community 46 - "Proposal"
-Cohesion: 0.29
-Nodes (6): Capabilities, Modified Capabilities, New Capabilities, Proposal, What Changes, Why
+Cohesion: 0.25
+Nodes (7): Capabilities, Impact, Modified Capabilities, New Capabilities, Proposal, What Changes, Why
 
 ### Community 47 - "Design"
 Cohesion: 0.29
@@ -260,16 +260,20 @@ Nodes (6): Design, Goals / Non-Goals, Migration Plan, Open Questions, Reconcilia
 Cohesion: 0.33
 Nodes (5): MODIFIED Requirements, Requirement: Consent handling for conversions, Scenario: Consent Mode disabled, Scenario: Marketing consent denied, Scenario: Marketing consent granted
 
+### Community 50 - "Requirement: Sign-up event"
+Cohesion: 0.67
+Nodes (3): Requirement: Sign-up event, Scenario: Guest checkout, Scenario: Registration form
+
 ## Knowledge Gaps
 - **17 isolated node(s):** `terser`, `SecCodeSmith Commercial License v1.1 header comment`, `Task implementation loop`, `Archive move to dated directory`, `Artifact and task completion checks` (+12 more)
-  These have ≤1 connection - possible missing edges or undocumented components. (Counts symbols only; 393 node(s) total have ≤1 connection when file, concept and rationale nodes are included.)
-- **14 thin communities (<3 nodes) omitted from report** — run `graphify query` to explore isolated nodes.
+  These have ≤1 connection - possible missing edges or undocumented components. (Counts symbols only; 394 node(s) total have ≤1 connection when file, concept and rationale nodes are included.)
+- **13 thin communities (<3 nodes) omitted from report** — run `graphify query` to explore isolated nodes.
 
 ## Suggested Questions
 _Questions this graph is uniquely positioned to answer:_
 
 - **Why does `currency()` connect `scm_ecommerce.js` to `Requirements`, `ADDED Requirements`, `ADDED Requirements`, `Proposal`, `Requirements`?**
-  _High betweenness centrality (0.198) - this node is a cross-community bridge._
+  _High betweenness centrality (0.197) - this node is a cross-community bridge._
 - **Are the 31 inferred relationships involving `login()` (e.g. with `Context` and `New Capabilities`) actually correct?**
   _`login()` has 31 INFERRED edges - model-reasoned connections that need verification._
 - **What connects `terser`, `SecCodeSmith Commercial License v1.1 header comment`, `Task implementation loop` to the rest of the system?**
@@ -277,7 +281,7 @@ _Questions this graph is uniquely positioned to answer:_
 - **Should `06-consent-basic.spec.js` be split into smaller, more focused modules?**
   _Cohesion score 0.08923076923076922 - nodes in this community are weakly interconnected._
 - **Why does `config()` connect `gcm_bootstrap.src.js` to `ADDED Requirements`, `scm_ecommerce.js`, `Decisions`, `.getAllConfig`, `Requirements`, `sql`?**
-  _High betweenness centrality (0.183) - this node is a cross-community bridge._
+  _High betweenness centrality (0.182) - this node is a cross-community bridge._
 - **Are the 11 inferred relationships involving `currency()` (e.g. with `What Changes` and `Requirement: Purchase conversion event`) actually correct?**
   _`currency()` has 11 INFERRED edges - model-reasoned connections that need verification._
 - **Should `scm_cookieconsent.js` be split into smaller, more focused modules?**

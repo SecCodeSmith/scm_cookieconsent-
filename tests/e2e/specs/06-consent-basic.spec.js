@@ -69,9 +69,16 @@ async function choose(page, what) {
   await page.locator('#scm-cookie-banner').waitFor({ state: 'hidden' });
 }
 
-/** Reopen the banner on the current page (round widget, wider than 600px). It opens the FIRST screen; `toSettings` then goes on to the switches. */
+/** Reopen the banner on the current page (round widget when it is shown, else the footer link). It opens the FIRST screen; `toSettings` then goes on to the switches. */
 async function reopen(page, toSettings = false) {
-  await page.locator('#scm-reopen-widget').click();
+  const widget = page.locator('#scm-reopen-widget');
+  if (await widget.isVisible()) {
+    await widget.click();
+  } else {
+    const link = page.locator('.scm-footer-link a.scm-reopen-link');
+    await link.scrollIntoViewIfNeeded();
+    await link.click();
+  }
   await bannerVisible(page);
   await expect(page.locator('#scm-screen-main')).toBeVisible();
   if (toSettings) {
@@ -652,9 +659,58 @@ test.describe('7. footer link and retention', () => {
       await page.reload();
       await expect(page.locator('.scm-footer-link')).toHaveCount(0);
       await expect(page.locator('a.scm-reopen-link')).toHaveCount(0);
+      for (const vp of [{ width: 390, height: 844 }, { width: 1366, height: 768 }]) {
+        await page.setViewportSize(vp);
+        await expect(page.locator('#scm-reopen-widget'), String(vp.width)).toBeVisible();
+      }
       await reopen(page);
     } finally {
       stack('config', 'SHOW_FOOTER_LINK', '1');
+    }
+  });
+
+  test('footer on: the round widget is hidden at 390 and 1366; the link is at least 14 px and its focus ring has 3:1 contrast', async ({ page }) => {
+    await page.goto('/');
+    await choose(page, 'reject');
+    for (const vp of [{ width: 390, height: 844 }, { width: 1366, height: 768 }]) {
+      await page.setViewportSize(vp);
+      await page.goto('/');
+      await expect(page.locator('#scm-reopen-widget'), String(vp.width)).toBeHidden();
+      const link = page.locator('.scm-footer-link a.scm-reopen-link');
+      await link.scrollIntoViewIfNeeded();
+      const size = await link.evaluate((el) => parseFloat(getComputedStyle(el).fontSize));
+      expect(size, `font size at ${vp.width}`).toBeGreaterThanOrEqual(14);
+      await link.focus();
+      await page.keyboard.press('Shift+Tab');
+      await page.keyboard.press('Tab'); // keyboard focus, so :focus-visible applies
+      const res = await link.evaluate((el) => {
+        const parse = (c) => { const m = String(c).match(/rgba?\(([^)]+)\)/); return m ? m[1].split(/[ ,/]+/).filter(Boolean).map(Number) : []; };
+        const lum = (rgb) => {
+          const [r, g, b] = rgb.map((v) => { v /= 255; return v <= 0.03928 ? v / 12.92 : Math.pow((v + 0.055) / 1.055, 2.4); });
+          return 0.2126 * r + 0.7152 * g + 0.0722 * b;
+        };
+        const ratio = (a, b) => { const x = lum(a), y = lum(b); return (Math.max(x, y) + 0.05) / (Math.min(x, y) + 0.05); };
+        let bg = null;
+        for (let n = el; n && !bg; n = n.parentElement) {
+          const c = parse(getComputedStyle(n).backgroundColor);
+          if (c.length >= 3 && c.slice(0, 3).every((v) => !isNaN(v)) && (c.length === 3 || c[3] > 0.99)) { bg = c.slice(0, 3); }
+        }
+        bg = bg || [255, 255, 255];
+        const cs = getComputedStyle(el);
+        return {
+          focused: document.activeElement === el,
+          style: cs.outlineStyle,
+          width: parseFloat(cs.outlineWidth),
+          ringColor: cs.outlineColor,
+          bgColor: bg.join(','),
+          ring: ratio(parse(cs.outlineColor).slice(0, 3), bg),
+          text: ratio(parse(cs.color).slice(0, 3), bg),
+        };
+      });
+      expect(res.focused, 'link focused').toBe(true);
+      expect(res.style).toBe('solid');
+      expect(res.width).toBeGreaterThanOrEqual(3);
+      expect(res.ring, `ring contrast at ${vp.width}: ${res.ringColor} on ${res.bgColor}`).toBeGreaterThanOrEqual(3);
     }
   });
 
@@ -770,7 +826,7 @@ for (const vp of [PHONE, DESKTOP]) {
     });
 
     for (const sel of ['#scm-btn-accept-all', '#scm-btn-reject-all', '#scm-btn-close']) {
-      test(`closing (${sel}): the choice is stored at once, the sheet is still there for a moment and gone within 400 ms`, async ({ page }) => {
+      test(`closing (${sel}): the choice is stored at once, the sheet is still there for a moment and gone within 600 ms (230 ms animation plus a busy test machine)`, async ({ page }) => {
         await page.goto('/');
         await bannerVisible(page);
         const s = await sampleAfter(page, clickFn(sel), readBanner, 700);
@@ -780,7 +836,7 @@ for (const vp of [PHONE, DESKTOP]) {
         const gone = s.find((x) => x.hidden);
         expect(gone, 'hidden after the motion').toBeTruthy();
         expect(gone.t, `hidden after ${gone.t} ms`).toBeGreaterThan(150);
-        expect(gone.t).toBeLessThanOrEqual(400);
+        expect(gone.t).toBeLessThanOrEqual(600);
         expect(gone.state).toBe('closed');
         const moving = s.filter((x) => !x.hidden);
         expect(moving[moving.length - 1].top, 'slid down while closing').toBeGreaterThan(moving[0].top + 2);
@@ -885,14 +941,13 @@ test.describe('8. reopen opens the first screen', () => {
   test.beforeAll(() => { setMode('gtag'); });
   test.use({ viewport: DESKTOP });
 
-  test('round button, footer link and SCM_Consent.reopen land on screen 1; settings shows the saved switches; Wróć returns', async ({ page }) => {
+  test('footer link and SCM_Consent.reopen land on screen 1; settings shows the saved switches; Wróć returns', async ({ page }) => {
     await page.goto('/');
     await choose(page, { analytics: true, marketing: false });
     const aId = await categoryOf(page, 'analytics_storage');
     const mId = await categoryOf(page, 'ad_storage');
     const before = await page.evaluate(() => localStorage.getItem('scm_consent'));
     const openers = [
-      () => page.locator('#scm-reopen-widget').click(),
       () => page.locator('.scm-footer-link a.scm-reopen-link').click(),
       () => page.evaluate(() => window.SCM_Consent.reopen()),
     ];

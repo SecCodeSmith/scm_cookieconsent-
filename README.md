@@ -235,7 +235,7 @@ The GA4 `purchase` event is still sent separately. Both are sent at most once pe
 | `SCM_COOKIE_EXPIRY_DAYS` | `365` (1-365; an older, larger value is reduced to 365 by the 1.9.0 upgrade) |
 | `SCM_COOKIE_POSITION` | `bottom` |
 | `SCM_COOKIE_SHOW_REOPEN` | `1` |
-| `SCM_COOKIE_SHOW_FOOTER_LINK` | `1` (text link "Zmień ustawienia cookies" on every page; hides the round reopen button below 600 px) |
+| `SCM_COOKIE_SHOW_FOOTER_LINK` | `1` (text link "Zmień ustawienia cookies" on every page; hides the round reopen button at every width) |
 | `SCM_COOKIE_COLOR_PRIMARY` | `#2fb5d2` |
 | `SCM_COOKIE_COLOR_ACCENT` | `#69b92d` |
 | `SCM_COOKIE_GTM_ID` | *(empty — GTM disabled)* |

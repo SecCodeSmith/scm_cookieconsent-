@@ -153,9 +153,13 @@ body.scm-modal-open { overflow: hidden; }
 /* Visible keyboard focus on every control */
 #scm-cookie-banner button:focus-visible,
 #scm-cookie-banner a:focus-visible,
-.scm-reopen-widget:focus-visible,
-.scm-footer-link a:focus-visible {
+.scm-reopen-widget:focus-visible {
     outline: 3px solid var(--scm-primary) !important;
+    outline-offset: 2px;
+}
+/* Footer link: the ring takes the link's own colour, so it reads on a light and on a dark footer */
+.scm-footer-link a.scm-reopen-link:focus-visible {
+    outline: 3px solid currentColor !important;
     outline-offset: 2px;
 }
 
@@ -313,14 +317,14 @@ body.scm-modal-open { overflow: hidden; }
 .scm-reopen-widget:hover { filter: brightness(0.92); transform: scale(1.08); }
 
 /* ===== Footer link ===== */
-.scm-footer-link { margin: 0; padding: 12px 16px; text-align: center; font-size: 13px; }
-.scm-footer-link a { color: inherit; text-decoration: underline; cursor: pointer; }
+.scm-footer-link { margin: 0; padding: 12px 16px; text-align: center; font-size: max(14px, .875rem); }
+.scm-footer-link a.scm-reopen-link { color: inherit; font-size: max(14px, .875rem); text-decoration: underline; cursor: pointer; }
+/* The footer link replaces the round button at every width (it can never sit over an add-to-cart bar). */
+.scm-reopen-widget.scm-has-footer-link { display: none !important; }
 
 /* ===== Phones only ===== */
 @media (max-width: 600px) {
     .scm-reopen-widget { width: 42px; height: 42px; bottom: 14px; left: 14px; }
-    /* The footer link replaces the round button on phones: it can never sit over an add-to-cart bar. */
-    .scm-reopen-widget.scm-has-footer-link { display: none !important; }
 }
 
 /* ===== From 768px: card docked to the bottom centre, buttons in one right-aligned row ===== */

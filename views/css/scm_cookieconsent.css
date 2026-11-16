@@ -44,18 +44,34 @@
     position: fixed; inset: 0;
     background: rgba(15, 23, 42, 0.55);
     z-index: calc(var(--scmcc-z) - 1);
-    animation: scm-fade-in 0.22s ease-out;
 }
 .scm-overlay[hidden] { display: none !important; }
+.scm-overlay[data-state="opening"] { animation: scm-fade-in 0.3s ease-out both; }
+.scm-overlay[data-state="closing"] { animation: scm-fade-out 0.23s ease-in both; }
 
 /* Phones: the sheet is modal, the page behind does not scroll */
 body.scm-modal-open { overflow: hidden; }
 
+/* ===== Motion (owner request 2026-11-16) =====
+   Opening: backdrop fades in, the sheet rises from below (phone: its own height, desktop: 16px) with a slight
+   opacity rise. Closing is the reverse and the element is hidden only when it has finished; the script mirrors the
+   phase in data-state (closed, opening, open, closing). Only transform and opacity move, plus one height
+   transition for the screen switch. will-change is set only while a phase runs. */
 @keyframes scm-fade-in  { from { opacity: 0; } to { opacity: 1; } }
-@keyframes scm-sheet-up { from { transform: translateY(100%); } to { transform: translateY(0); } }
-@keyframes scm-slide-up { from { transform: translateY(20px); opacity: 0; } to { transform: translateY(0); opacity: 1; } }
-@keyframes scm-pop-in   { from { transform: translate(-50%, -50%) scale(0.96); opacity: 0; } to { transform: translate(-50%, -50%) scale(1); opacity: 1; } }
-@keyframes scm-float-up { from { transform: translateX(-50%) translateY(24px); opacity: 0; } to { transform: translateX(-50%) translateY(0); opacity: 1; } }
+@keyframes scm-fade-out { from { opacity: 1; } to { opacity: 0; } }
+@keyframes scm-banner-in {
+    from { opacity: var(--scmcc-o0); transform: var(--scmcc-base) translateY(var(--scmcc-dy)); }
+    to   { opacity: 1;               transform: var(--scmcc-base) translateY(0); }
+}
+@keyframes scm-banner-out {
+    from { opacity: 1;               transform: var(--scmcc-base) translateY(0); }
+    to   { opacity: var(--scmcc-o0); transform: var(--scmcc-base) translateY(var(--scmcc-dy)); }
+}
+/* Screen switch: forward = the outgoing screen leaves to the left, back = to the right */
+@keyframes scm-leave-fwd  { from { opacity: 1; transform: translateX(0); } to { opacity: 0; transform: translateX(-16px); } }
+@keyframes scm-leave-back { from { opacity: 1; transform: translateX(0); } to { opacity: 0; transform: translateX(16px); } }
+@keyframes scm-enter-fwd  { from { opacity: 0; transform: translateX(16px); }  to { opacity: 1; transform: translateX(0); } }
+@keyframes scm-enter-back { from { opacity: 0; transform: translateX(-16px); } to { opacity: 1; transform: translateX(0); } }
 
 /* ===== The sheet (phone layout is the base) ===== */
 .scm-cookie-banner {
@@ -72,8 +88,27 @@ body.scm-modal-open { overflow: hidden; }
     font-size: 15px;
     line-height: 1.5;
     z-index: var(--scmcc-z);
-    animation: scm-sheet-up 0.3s cubic-bezier(0.22, 1, 0.36, 1);
+    /* the rest transform per layout, the distance of the entrance and the opacity it starts from */
+    --scmcc-base: translateY(0);
+    --scmcc-dy: 100%;
+    --scmcc-o0: 0.6;
+    /* the sheet's height moves to the other screen's height (set inline by the script during a switch) */
+    transition: height 0.28s cubic-bezier(0.22, 0.61, 0.36, 1);
 }
+.scm-cookie-banner[data-state="opening"] {
+    animation: scm-banner-in 0.32s cubic-bezier(0.22, 0.61, 0.36, 1) both;
+    will-change: transform, opacity;
+}
+.scm-cookie-banner[data-state="closing"] {
+    animation: scm-banner-out 0.23s cubic-bezier(0.4, 0, 1, 1) both;
+    will-change: transform, opacity;
+    pointer-events: none;
+}
+.scm-cookie-banner[data-switching] { overflow-y: hidden; }
+.scm-screen.scm-leave-fwd   { animation: scm-leave-fwd  0.13s ease-in both; }
+.scm-screen.scm-leave-back  { animation: scm-leave-back 0.13s ease-in both; }
+.scm-screen.scm-enter-fwd   { animation: scm-enter-fwd  0.17s ease-out both; }
+.scm-screen.scm-enter-back  { animation: scm-enter-back 0.17s ease-out both; }
 .scm-cookie-banner *, .scm-cookie-banner *::before, .scm-cookie-banner *::after { box-sizing: border-box; }
 .scm-cookie-banner[hidden] { display: none !important; }
 .scm-screen[hidden] { display: none !important; }
@@ -162,13 +197,22 @@ body.scm-modal-open { overflow: hidden; }
     border-left: 1px solid var(--scmcc-line);
     color: var(--scmcc-text); cursor: pointer;
 }
-.scm-chevron { transition: transform 0.2s; }
+.scm-chevron { transition: transform 0.22s ease; }
 .scm-category.scm-expanded .scm-chevron { transform: rotate(180deg); }
+/* Description: the grid row goes 0fr -> 1fr; while collapsed it is also visibility hidden (no focus, not read) */
+.scm-category-body {
+    display: grid; grid-template-rows: 0fr; visibility: hidden;
+    transition: grid-template-rows 0.22s ease, visibility 0s linear 0.22s;
+}
+.scm-category.scm-expanded .scm-category-body {
+    grid-template-rows: 1fr; visibility: visible;
+    transition: grid-template-rows 0.22s ease, visibility 0s;
+}
+.scm-category-body-inner { min-height: 0; overflow: hidden; }
 .scm-category-desc {
     margin: 0; padding: 0 16px 14px;
     font-size: 14px; line-height: 1.5; color: var(--scmcc-muted);
 }
-.scm-category-desc[hidden] { display: none !important; }
 
 /* ===== Toggle switch ===== */
 .scm-toggle-wrap { display: flex; align-items: center; gap: 10px; flex: 0 0 auto; }
@@ -284,7 +328,9 @@ body.scm-modal-open { overflow: hidden; }
     :root { --scmcc-pad: 32px; }
 
     /* No visible dimming and no scroll lock on desktop; the dialog still traps focus */
-    .scm-overlay { background: transparent; pointer-events: none; animation: none; }
+    .scm-overlay { background: transparent; pointer-events: none; }
+    .scm-overlay[data-state] { animation: none; }
+    .scm-cookie-banner { --scmcc-dy: 16px; --scmcc-o0: 0; }
     body.scm-modal-open { overflow: visible; }
 
     .scm-pos-bottom {
@@ -292,7 +338,7 @@ body.scm-modal-open { overflow: hidden; }
         width: 848px; max-width: calc(100vw - 32px);
         max-height: calc(100vh - 16px);
         transform: translateX(-50%);
-        animation: scm-float-up 0.32s cubic-bezier(0.22, 1, 0.36, 1);
+        --scmcc-base: translateX(-50%);
     }
     .scm-pos-center {
         top: 50%; left: 50%; right: auto; bottom: auto;
@@ -300,14 +346,13 @@ body.scm-modal-open { overflow: hidden; }
         max-height: calc(100vh - 48px);
         transform: translate(-50%, -50%);
         border-radius: 16px;
-        animation: scm-pop-in 0.28s cubic-bezier(0.22, 1, 0.36, 1);
+        --scmcc-base: translate(-50%, -50%);
     }
     .scm-pos-bottom-left {
         left: 20px; right: auto; bottom: 20px;
         width: 420px; max-width: calc(100vw - 40px);
         max-height: calc(100vh - 40px);
         border-radius: 16px;
-        animation: scm-slide-up 0.3s ease-out;
     }
     .scm-pos-bottom-left { --scmcc-pad: 24px; }
 
@@ -333,12 +378,22 @@ body.scm-modal-open { overflow: hidden; }
     .scm-pos-center .scm-btn-save { width: 188px; }
     .scm-pos-bottom .scm-btn-back,
     .scm-pos-center .scm-btn-back { width: 120px; }
+    /* Settings bar: Wróć | Odrzuć opcjonalne | Zapisz wybór | Akceptuję wszystkie in one row; 110 + 224 + 170 + 224 + 3 x 12
+       = 764px fits the 784px inside the 848px card. Reject and accept stay the same size. */
+    .scm-pos-bottom .scm-actions-sticky .scm-btn-back,
+    .scm-pos-center .scm-actions-sticky .scm-btn-back { width: 110px; }
+    .scm-pos-bottom .scm-actions-sticky .scm-btn-reject,
+    .scm-pos-center .scm-actions-sticky .scm-btn-reject,
+    .scm-pos-bottom .scm-actions-sticky .scm-btn-accept,
+    .scm-pos-center .scm-actions-sticky .scm-btn-accept { width: 224px; }
+    .scm-pos-bottom .scm-actions-sticky .scm-btn-save,
+    .scm-pos-center .scm-actions-sticky .scm-btn-save { width: 170px; }
 
     .scm-category-header { min-height: 58px; }
 }
 
 /* ===== Reduced motion ===== */
 @media (prefers-reduced-motion: reduce) {
-    .scm-cookie-banner, .scm-overlay { animation: none !important; }
-    .scm-toggle, .scm-toggle-knob, .scm-btn, .scm-reopen-widget, .scm-chevron { transition: none !important; }
+    .scm-cookie-banner, .scm-overlay, .scm-screen { animation: none !important; will-change: auto !important; }
+    .scm-cookie-banner, .scm-category-body, .scm-toggle, .scm-toggle-knob, .scm-btn, .scm-reopen-widget, .scm-chevron { transition: none !important; }
 }

@@ -261,7 +261,35 @@
         pushEvent('add_payment_info', cartPayload({ payment_type: type }));
     }
 
-    function onChange(e) { paymentSelected(e && e.target); }
+    // The checkout step that holds an element. PrestaShop's one-page checkout keeps every step in the
+    // DOM: the classic theme marks a step `checkout-step` and the open one `-current`; Hummingbird-based
+    // themes mark a step `step` and the open one `step--current js-current-step`. Both name the section
+    // `checkout-<name>-step`, which is the first thing looked for. null = the theme has no step markup.
+    function stepOf(el) {
+        var node = el;
+        while (node && node.nodeType === 1) {
+            var cls = ' ' + String(node.className || '') + ' ';
+            if (/^checkout-.+-step$/.test(node.id || '') || cls.indexOf(' checkout-step ') !== -1 || cls.indexOf(' step ') !== -1) { return node; }
+            node = node.parentNode;
+        }
+        return null;
+    }
+
+    // '-current' covers classic (`-current`), Hummingbird (`step--current`, `js-current-step`).
+    function stepIsOpen(el) {
+        var step = stepOf(el);
+        return !step || String(step.className || '').indexOf('-current') !== -1;
+    }
+
+    // A visitor's choice: a change on a payment radio of the open step, after the page has loaded.
+    // Scripts that re-dispatch `change` on the checked radio while the page loads are not a choice;
+    // paymentPreselected() covers an option that is already checked, after add_shipping_info.
+    function onChange(e) {
+        var t = e && e.target;
+        if (document.readyState === 'loading') { return; }
+        if (!t || t.name !== 'payment-option' || !stepIsOpen(t)) { return; }
+        paymentSelected(t);
+    }
 
     // A shop with ONE payment option shows it already selected: no change event ever
     // fires. Deliver add_payment_info once on load when the payment step is the open
@@ -270,13 +298,7 @@
         var radios = document.querySelectorAll('input[name="payment-option"]');
         for (var i = 0; i < radios.length; i++) {
             var r = radios[i];
-            if (!r.checked) { continue; }
-            var node = r, step = null;
-            while (node && node.nodeType === 1) {
-                if (String(node.className || '').indexOf('checkout-step') !== -1) { step = node; break; }
-                node = node.parentNode;
-            }
-            if (step && String(step.className).indexOf('-current') === -1) { continue; }
+            if (!r.checked || !stepIsOpen(r)) { continue; }
             paymentSelected(r);
             return;
         }

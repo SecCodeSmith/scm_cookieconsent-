@@ -30,7 +30,7 @@ window.SCM_COOKIE_CONFIG = {
 };
 </script>
 
-<div id="scm-overlay" class="scm-overlay" aria-hidden="true" hidden></div>
+<div id="scm-overlay" class="scm-overlay" data-state="closed" aria-hidden="true" hidden></div>
 
 {* One dialog, two screens (design D7): "main" = a short question with three buttons,
    "settings" = one card per category. The JS shows one screen at a time and moves
@@ -42,6 +42,7 @@ window.SCM_COOKIE_CONFIG = {
     aria-modal="true"
     aria-labelledby="scm-banner-title"
     aria-describedby="scm-banner-desc"
+    data-state="closed"
     hidden
 >
     <div class="scm-banner-inner">
@@ -133,7 +134,10 @@ window.SCM_COOKIE_CONFIG = {
                     </div>
 
                     {if $cat.description}
-                        <p class="scm-category-desc" id="scm-cat-desc-{$cat.id_category|intval}" hidden>{$cat.description|escape:'html':'UTF-8'}</p>
+                        {* grid row 0fr -> 1fr animates the height; collapsed = visibility hidden (not focusable, not read) *}
+                        <div class="scm-category-body"><div class="scm-category-body-inner">
+                            <p class="scm-category-desc" id="scm-cat-desc-{$cat.id_category|intval}">{$cat.description|escape:'html':'UTF-8'}</p>
+                        </div></div>
                     {/if}
                 </div>
                 {/foreach}
@@ -152,6 +156,7 @@ window.SCM_COOKIE_CONFIG = {
 
             <div class="scm-actions scm-actions-sticky">
                 <button type="button" class="scm-btn scm-btn-back" id="scm-btn-back">{$scm_txt_back|escape:'html':'UTF-8'}</button>
+                <button type="button" class="scm-btn scm-btn-reject" id="scm-btn-reject-settings">{$scm_txt_reject|escape:'html':'UTF-8'}</button>
                 <button type="button" class="scm-btn scm-btn-save" id="scm-btn-save">{$scm_txt_save|escape:'html':'UTF-8'}</button>
                 <button type="button" class="scm-btn scm-btn-accept" id="scm-btn-accept-settings">{$scm_txt_accept|escape:'html':'UTF-8'}</button>
             </div>
